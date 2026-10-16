@@ -1,6 +1,6 @@
 from pathlib import Path
 import pandas as pd
-ROOT = Path(__file__).parent
+ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
 OUT = ROOT / "clean"
 OUT.mkdir(exist_ok=True)
