@@ -1,0 +1,10 @@
+data/raw/*
+!data/raw/.gitkeep
+.venv/
+.env
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.DS_Store
+data/processed/calendar_*.csv
+data/processed/calendar_*.csv.gz
