@@ -79,10 +79,10 @@ else:
             calender_id.append(set(df["review_id"]))
 
     if len(calender_id) > 1:
-            if all(s == calender_id[0] for s in calender_id[0][1:]):
-                print("[PASS] Các mốc có cùng id")
-            else:
-                print("[FAIL] Các mốc không có cùng id")
+        if all(s == calender_id[0] for s in calender_id[1:]):
+            print("[PASS] Các mốc có cùng id")
+        else:
+            print("[FAIL] Các mốc không có cùng id")
 
 # Review
 review_files = sorted(PROCESSED_DIR.glob("reviews_*.csv*"))
@@ -104,7 +104,7 @@ else:
             review_id.append(set(df["review_id"]))
 
     if len(review_id) > 1:
-        if all(s == review_id[0] for s in review_id[0][1:]):
+        if all(s == review_id[0] for s in review_id[1:]):
             print("[PASS] Các mốc có cùng id")
         else:
             print("[FAIL] Các mốc không có cùng id")
