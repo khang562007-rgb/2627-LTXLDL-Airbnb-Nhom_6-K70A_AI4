@@ -24,3 +24,9 @@ qa:
     max_days_before_host_since: 30
     score_min: 0
     score_max: 5
+  property:
+    room_types: [Entire home/apt, Private room, Shared room, Hotel room]
+    property_type_min_share: 0.005
+    capacity_max: 16
+    attr_cols: [room_type, property_type, bedrooms]
+    coord_drift_m: 200
