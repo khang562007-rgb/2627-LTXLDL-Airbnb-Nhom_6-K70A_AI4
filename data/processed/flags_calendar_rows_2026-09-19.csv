@@ -1,6 +1,0 @@
-listing_id,date,available,minimum_nights,maximum_nights,flagged_available_type,flagged_dup_key,flagged_cal_min_nights_outlier,flagged_cal_max_nights_outlier,flagged_nights_inconsistent
-21523101,2026-10-10,t,3,2,False,False,False,False,True
-21523101,2026-10-23,t,3,2,False,False,False,False,True
-27802749,2026-10-09,t,3,2,False,False,False,False,True
-757065968196744921,2026-10-06,t,3,2,False,False,False,False,True
-874028898065099507,2026-10-16,t,3,2,False,False,False,False,True
