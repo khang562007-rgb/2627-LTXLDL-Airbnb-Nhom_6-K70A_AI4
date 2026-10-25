@@ -1,0 +1,41 @@
+﻿rule,kind,table,snapshot,condition,reason,action,rows_total,rows_flagged,note
+room_type_category,flag,listings,2025-09-21,room_type ngoài danh mục room_types (hoặc thiếu),Danh mục lạ,Gắn cờ,1000,0,
+property_type_rare,flag,listings,2025-09-21,property_type chiếm dưới property_type_min_share của mốc,"Loại quá hiếm, khó so sánh",Gắn cờ,1000,30,
+capacity_outlier,flag,listings,2025-09-21,"accommodates thiếu, <1 hoặc > capacity_max",Sức chứa vô lý,Gắn cờ,1000,0,
+bedrooms_beds_inconsistent,flag,listings,2025-09-21,"bedrooms > accommodates, hoặc beds = 0",Mâu thuẫn giữa phòng ngủ/giường và sức chứa,Gắn cờ,1000,10,
+bathrooms_type,flag,listings,2025-09-21,cột bathrooms thiếu hoặc không phải số,Sai kiểu,"Tạo cột bathrooms_clean (parse từ bathrooms_text), giữ nguyên cột gốc",1000,40,còn thiếu sau khi sửa: 0
+amenities_parse,flag,listings,2025-09-21,amenities không parse được thành danh sách JSON,Không đếm được tiện nghi,Gắn cờ,1000,0,
+room_type_category,flag,listings,2025-12-25,room_type ngoài danh mục room_types (hoặc thiếu),Danh mục lạ,Gắn cờ,1000,0,
+property_type_rare,flag,listings,2025-12-25,property_type chiếm dưới property_type_min_share của mốc,"Loại quá hiếm, khó so sánh",Gắn cờ,1000,31,
+capacity_outlier,flag,listings,2025-12-25,"accommodates thiếu, <1 hoặc > capacity_max",Sức chứa vô lý,Gắn cờ,1000,0,
+bedrooms_beds_inconsistent,flag,listings,2025-12-25,"bedrooms > accommodates, hoặc beds = 0",Mâu thuẫn giữa phòng ngủ/giường và sức chứa,Gắn cờ,1000,9,
+bathrooms_type,flag,listings,2025-12-25,cột bathrooms thiếu hoặc không phải số,Sai kiểu,"Tạo cột bathrooms_clean (parse từ bathrooms_text), giữ nguyên cột gốc",1000,55,còn thiếu sau khi sửa: 0
+amenities_parse,flag,listings,2025-12-25,amenities không parse được thành danh sách JSON,Không đếm được tiện nghi,Gắn cờ,1000,0,
+room_type_category,flag,listings,2026-03-26,room_type ngoài danh mục room_types (hoặc thiếu),Danh mục lạ,Gắn cờ,1000,0,
+property_type_rare,flag,listings,2026-03-26,property_type chiếm dưới property_type_min_share của mốc,"Loại quá hiếm, khó so sánh",Gắn cờ,1000,32,
+capacity_outlier,flag,listings,2026-03-26,"accommodates thiếu, <1 hoặc > capacity_max",Sức chứa vô lý,Gắn cờ,1000,0,
+bedrooms_beds_inconsistent,flag,listings,2026-03-26,"bedrooms > accommodates, hoặc beds = 0",Mâu thuẫn giữa phòng ngủ/giường và sức chứa,Gắn cờ,1000,10,
+bathrooms_type,flag,listings,2026-03-26,cột bathrooms thiếu hoặc không phải số,Sai kiểu,"Tạo cột bathrooms_clean (parse từ bathrooms_text), giữ nguyên cột gốc",1000,62,còn thiếu sau khi sửa: 0
+amenities_parse,flag,listings,2026-03-26,amenities không parse được thành danh sách JSON,Không đếm được tiện nghi,Gắn cờ,1000,0,
+room_type_category,flag,listings,2026-06-23,room_type ngoài danh mục room_types (hoặc thiếu),Danh mục lạ,Gắn cờ,1000,0,
+property_type_rare,flag,listings,2026-06-23,property_type chiếm dưới property_type_min_share của mốc,"Loại quá hiếm, khó so sánh",Gắn cờ,1000,28,
+capacity_outlier,flag,listings,2026-06-23,"accommodates thiếu, <1 hoặc > capacity_max",Sức chứa vô lý,Gắn cờ,1000,0,
+bedrooms_beds_inconsistent,flag,listings,2026-06-23,"bedrooms > accommodates, hoặc beds = 0",Mâu thuẫn giữa phòng ngủ/giường và sức chứa,Gắn cờ,1000,1,
+bathrooms_type,flag,listings,2026-06-23,cột bathrooms thiếu hoặc không phải số,Sai kiểu,"Tạo cột bathrooms_clean (parse từ bathrooms_text), giữ nguyên cột gốc",1000,61,còn thiếu sau khi sửa: 1
+amenities_parse,flag,listings,2026-06-23,amenities không parse được thành danh sách JSON,Không đếm được tiện nghi,Gắn cờ,1000,0,
+calendar_vs_listing,flag,listings,2025-09-21,listing không có dòng nào trong calendar cùng mốc,Hai bảng không khớp ID,Gắn cờ (số dòng calendar mồ côi ghi ở note),1000,0,dòng calendar có id lạ: 0/365000
+calendar_vs_listing,flag,listings,2025-12-25,listing không có dòng nào trong calendar cùng mốc,Hai bảng không khớp ID,Gắn cờ (số dòng calendar mồ côi ghi ở note),1000,0,dòng calendar có id lạ: 0/365000
+calendar_vs_listing,flag,listings,2026-03-26,listing không có dòng nào trong calendar cùng mốc,Hai bảng không khớp ID,Gắn cờ (số dòng calendar mồ côi ghi ở note),1000,0,dòng calendar có id lạ: 0/365000
+calendar_vs_listing,flag,listings,2026-06-23,listing không có dòng nào trong calendar cùng mốc,Hai bảng không khớp ID,Gắn cờ (số dòng calendar mồ côi ghi ở note),1000,0,dòng calendar có id lạ: 0/365000
+attr_changed,flag,listings,2025-09-21,cùng id nhưng attr_cols khác nhau giữa các mốc,Thuộc tính đổi theo thời gian,Gắn cờ,1000,217,
+attr_changed,flag,listings,2025-12-25,cùng id nhưng attr_cols khác nhau giữa các mốc,Thuộc tính đổi theo thời gian,Gắn cờ,1000,217,
+attr_changed,flag,listings,2026-03-26,cùng id nhưng attr_cols khác nhau giữa các mốc,Thuộc tính đổi theo thời gian,Gắn cờ,1000,217,
+attr_changed,flag,listings,2026-06-23,cùng id nhưng attr_cols khác nhau giữa các mốc,Thuộc tính đổi theo thời gian,Gắn cờ,1000,217,
+coord_drift,flag,listings,2025-09-21,toạ độ cùng id lệch hơn coord_drift_m mét giữa các mốc,Toạ độ không ổn định,Gắn cờ,1000,1,
+coord_drift,flag,listings,2025-12-25,toạ độ cùng id lệch hơn coord_drift_m mét giữa các mốc,Toạ độ không ổn định,Gắn cờ,1000,1,
+coord_drift,flag,listings,2026-03-26,toạ độ cùng id lệch hơn coord_drift_m mét giữa các mốc,Toạ độ không ổn định,Gắn cờ,1000,1,
+coord_drift,flag,listings,2026-06-23,toạ độ cùng id lệch hơn coord_drift_m mét giữa các mốc,Toạ độ không ổn định,Gắn cờ,1000,1,
+reviews_decrease,flag,listings,2025-09-21,number_of_reviews giảm so với mốc liền trước,Số review tích luỹ lẽ ra chỉ tăng,Gắn cờ,1000,0,
+reviews_decrease,flag,listings,2025-12-25,number_of_reviews giảm so với mốc liền trước,Số review tích luỹ lẽ ra chỉ tăng,Gắn cờ,1000,0,
+reviews_decrease,flag,listings,2026-03-26,number_of_reviews giảm so với mốc liền trước,Số review tích luỹ lẽ ra chỉ tăng,Gắn cờ,1000,3,
+reviews_decrease,flag,listings,2026-06-23,number_of_reviews giảm so với mốc liền trước,Số review tích luỹ lẽ ra chỉ tăng,Gắn cờ,1000,2,
