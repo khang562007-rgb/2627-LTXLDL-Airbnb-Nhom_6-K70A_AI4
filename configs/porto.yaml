@@ -1,0 +1,32 @@
+city: porto
+data_root: portugal/norte/porto
+currency: EUR
+snapshots: ["2025-09-21", "2025-12-25", "2026-03-26", "2026-06-23"]
+seed: 42
+paths:
+  raw: data/raw
+  interim: data/interim        # đã lọc, chưa gắn cờ
+  processed: data/processed    # đã gắn cờ, kết quả cuối
+sample:
+  data_code: DSE2049-C04-G06-porto
+  calendar_cols: [listing_id, date, available]
+  reviews:
+    ids_path: data/samples/review_ids.csv
+    ids_url: "https://docs.google.com/spreadsheets/d/1Ru6653xzX4r29ywxoGSGA543F3QjXwQaVgC19WTwNEA/export?format=csv&gid=0"
+  listings:
+    ids_path: data/samples/porto-listings.csv
+    ids_url: "https://docs.google.com/spreadsheets/d/1wzH-Wy22LIeR2qaLpP5lDmkSn48gRqRjVrp2q3z69v8/export?format=csv&gid=0"
+
+qa:
+  reviews:
+    min_comment_len: 3
+    dup_content_keys: [listing_id, reviewer_id, date, comments]
+    max_days_before_host_since: 30
+    score_min: 0
+    score_max: 5
+  property:
+    room_types: [Entire home/apt, Private room, Shared room, Hotel room]
+    property_type_min_share: 0.005
+    capacity_max: 16
+    attr_cols: [room_type, property_type, bedrooms]
+    coord_drift_m: 200
