@@ -1,110 +1,159 @@
+"""Check expected row counts and IDs in interim and processed outputs."""
 from pathlib import Path
+import sys
+
 import pandas as pd
+import yaml
 
-PROCESSED_DIR = Path("data") / "processed"
-REVIEWS = [50, 30, 25, 25]
 
-# Listings
-listing_files = sorted(PROCESSED_DIR.glob("listings_*.csv*"))
-if not listing_files:
-    print("\n[FAIL] Không tìm thấy file listings_*.csv*")
-else:
-    print(f"\n--- KIỂM TRA LISTINGS ---")
-    listing_id = []
+ROOT = Path(__file__).resolve().parent
+with (ROOT / "configs" / "porto.yaml").open(encoding="utf-8") as config_file:
+    CONFIG = yaml.safe_load(config_file)
 
-    for idx, filepath in enumerate(listing_files):
-        df = pd.read_csv(filepath)
+SNAPSHOTS = CONFIG["snapshots"]
+INTERIM_DIR = ROOT / CONFIG["paths"]["interim"]
+PROCESSED_DIR = ROOT / CONFIG["paths"]["processed"]
+EXPECTED_LISTINGS = 1000
+EXPECTED_CALENDAR_ROWS = 365_000
+EXPECTED_REVIEW_ROWS = 5_000
+EXPECTED_ROOM_TYPES = {"Entire home/apt": 875, "Private room": 125}
+EXPECTED_NO_REVIEW_COUNTS = dict(zip(SNAPSHOTS, [50, 30, 25, 25]))
+failures = 0
 
-        if len(df) != 1000:
-            print(f"[FAIL] {filepath.name} không đủ 1000 dòng")
-        else:
-            print(f"[PASS] {filepath.name} đủ 1000 dòng")
 
+def check(condition, message):
+    global failures
+    if condition:
+        print(f"[PASS] {message}")
+    else:
+        failures += 1
+        print(f"[FAIL] {message}")
+
+
+def csv_path(folder, stem):
+    """Resolve either compressed or plain CSV output."""
+    for suffix in (".csv.gz", ".csv"):
+        path = folder / f"{stem}{suffix}"
+        if path.is_file():
+            return path
+    return None
+
+
+def load_csv(folder, stem, label, **kwargs):
+    path = csv_path(folder, stem)
+    check(path is not None, f"Tìm thấy {label}")
+    if path is None:
+        return None
+    try:
+        return pd.read_csv(path, **kwargs)
+    except Exception as exc:
+        check(False, f"Đọc được {label}: {exc}")
+        return None
+
+
+def check_id_sets(id_sets, label):
+    if len(id_sets) < 2:
+        return
+    reference = next(iter(id_sets.values()))
+    check(all(ids == reference for ids in list(id_sets.values())[1:]),
+          f"Các mốc có cùng ID {label}")
+
+
+def main():
+    listing_ids = {}
+    review_ids = {}
+
+    print("--- INTERIM: LISTINGS ---")
+    for snap in SNAPSHOTS:
+        df = load_csv(INTERIM_DIR, f"listings_{snap}", f"listings_{snap}",
+                      dtype={"id": str}, low_memory=False)
+        if df is None:
+            continue
+
+        check(len(df) == EXPECTED_LISTINGS,
+              f"listings_{snap}: {len(df)} dòng (kỳ vọng {EXPECTED_LISTINGS})")
         if "id" in df.columns:
-            listing_id.append(set(df["id"]))
-        elif "listing_id" in df.columns:
-            listing_id.append(set(df["listing_id"]))
+            listing_ids[snap] = set(df["id"].dropna())
+            check(not df["id"].duplicated().any(), f"listings_{snap}: ID không trùng")
+        else:
+            check(False, f"listings_{snap}: thiếu cột id")
 
         if "room_type" in df.columns:
-            if df["room_type"].value_counts() == {"Entire home/apt": 875, "Private room": 125}:
-                print("[PASS] Đủ 875 Entire home/apt, 125 Private room")
-            else:
-                print("[FAIL] Không đủ 875 Entire home/apt, 125 Private room")
+            actual = df["room_type"].value_counts().to_dict()
+            check(actual == EXPECTED_ROOM_TYPES,
+                  f"listings_{snap}: phân bố room_type là {actual}")
+        else:
+            check(False, f"listings_{snap}: thiếu cột room_type")
 
         if "number_of_reviews" in df.columns:
-            if (df["number_of_reviews"] == 0).sum() == REVIEWS[idx]:
-                print("[PASS] Đủ số id không có review")
-            else:
-                print("[FAIL] Không đủ số id không có review")
-
-        if idx == len(listing_files) - 1:
-            if "price" in df.columns:
-                if df["price"].isna().sum() == 20:
-                    print("[PASS] Mốc cuối đủ 20 listing thiếu price")
-                else:
-                    print("[FAIL] Mốc cuối không đủ 20 listing thiếu price")
+            actual = pd.to_numeric(df["number_of_reviews"], errors="coerce").eq(0).sum()
+            expected = EXPECTED_NO_REVIEW_COUNTS[snap]
+            check(actual == expected,
+                  f"listings_{snap}: {actual} listing không review (kỳ vọng {expected})")
+        else:
+            check(False, f"listings_{snap}: thiếu cột number_of_reviews")
 
         if "analysis_area" in df.columns:
-            area_counts = df["analysis_area"].value_counts()
-            if area_counts[(area_counts < 120) | (area_counts > 130)].empty:
-                print("[PASS] analysis_area đủ từ 120-130 listing")
-            else:
-                print("[FAIL] analysis_area không đủ từ 120-130 listing")
-
-    if len(listing_id) > 1:
-        first_set = listing_id[0]
-        all_same = all(s == first_set for s in listing_id[1:])
-        if all_same:
-            print("[PASS] Các mốc có cùng id")
+            counts = df["analysis_area"].value_counts()
+            valid = not counts.empty and counts.between(120, 130).all()
+            check(valid, f"listings_{snap}: mỗi analysis_area có 120–130 listing")
         else:
-            print("[FAIL] Các mốc không có cùng id")
+            check(False, f"listings_{snap}: thiếu cột analysis_area")
 
-# Calender
-cal_files = sorted(PROCESSED_DIR.glob("calendar_*.csv*"))
-if not cal_files:
-    print("\n[FAIL] Không tìm thấy file calendar_*.csv*")
-else:
-    print("\n--- KIỂM TRA CALENDAR ---")
-    calender_id = []
-    for filepath in cal_files:
-        df = pd.read_csv(filepath)
-        if len(df) == 365000:
-            print(f"[PASS] {filepath.name} đủ 365000 dòng")
-        else:
-            print(f"[FAIL] {filepath.name}: không đủ 365000 dòng")
+        if snap == SNAPSHOTS[-1] and "price" in df.columns:
+            check(df["price"].isna().sum() == 20,
+                  f"listings_{snap}: có đúng 20 giá trị price thiếu")
+        elif snap == SNAPSHOTS[-1]:
+            check(False, f"listings_{snap}: thiếu cột price")
 
+    check_id_sets(listing_ids, "listings")
+
+    print("\n--- INTERIM: CALENDAR ---")
+    for snap in SNAPSHOTS:
+        df = load_csv(INTERIM_DIR, f"calendar_{snap}", f"calendar_{snap}",
+                      usecols=["listing_id"], dtype={"listing_id": str})
+        if df is None:
+            continue
+        check(len(df) == EXPECTED_CALENDAR_ROWS,
+              f"calendar_{snap}: {len(df)} dòng (kỳ vọng {EXPECTED_CALENDAR_ROWS})")
+        if "listing_id" in df.columns:
+            check(df["listing_id"].nunique() == EXPECTED_LISTINGS,
+                  f"calendar_{snap}: có {df['listing_id'].nunique()} listing")
+            if snap in listing_ids:
+                check(set(df["listing_id"].dropna()) == listing_ids[snap],
+                      f"calendar_{snap}: ID khớp listings")
+
+    print("\n--- INTERIM: REVIEWS ---")
+    for snap in SNAPSHOTS:
+        df = load_csv(INTERIM_DIR, f"reviews_{snap}", f"reviews_{snap}",
+                      usecols=["id"], dtype={"id": str})
+        if df is None:
+            continue
+        check(len(df) == EXPECTED_REVIEW_ROWS,
+              f"reviews_{snap}: {len(df)} dòng (kỳ vọng {EXPECTED_REVIEW_ROWS})")
         if "id" in df.columns:
-            calender_id.append(set(df["id"]))
-        elif "review_id" in df.columns:
-            calender_id.append(set(df["review_id"]))
+            review_ids[snap] = set(df["id"].dropna())
+    check_id_sets(review_ids, "reviews")
 
-    if len(calender_id) > 1:
-            if all(s == calender_id[0] for s in calender_id[0][1:]):
-                print("[PASS] Các mốc có cùng id")
-            else:
-                print("[FAIL] Các mốc không có cùng id")
+    print("\n--- PROCESSED ---")
+    for snap in SNAPSHOTS:
+        for stem in (f"listings_property_flags_{snap}", f"listings_review_flags_{snap}"):
+            df = load_csv(PROCESSED_DIR, stem, stem, dtype={"id": str})
+            if df is not None:
+                check(len(df) == EXPECTED_LISTINGS and "id" in df.columns,
+                      f"{stem}: có {EXPECTED_LISTINGS} dòng và cột id")
 
-# Review
-review_files = sorted(PROCESSED_DIR.glob("reviews_*.csv*"))
-if not review_files:
-    print("\n[FAIL] Không tìm thấy file reviews_*.csv*")
-else:
-    print("\n--- KIỂM TRA REVIEWS ---")
-    review_id = []
-    for filepath in review_files:
-        df = pd.read_csv(filepath)
-        if len(df) == 5000:
-            print(f"[PASS] {filepath.name} đủ 5000 dòng")
-        else:
-            print(f"[FAIL] {filepath.name} không đủ 5000 dòng")
+        stem = f"reviews_flagged_{snap}"
+        df = load_csv(PROCESSED_DIR, stem, stem, usecols=["id"], dtype={"id": str})
+        if df is not None:
+            check(len(df) == EXPECTED_REVIEW_ROWS,
+                  f"{stem}: {len(df)} dòng (kỳ vọng {EXPECTED_REVIEW_ROWS})")
 
-        if "id" in df.columns:
-            review_id.append(set(df["id"]))
-        elif "review_id" in df.columns:
-            review_id.append(set(df["review_id"]))
+    if failures:
+        print(f"\nCó {failures} kiểm tra chưa đạt.")
+        sys.exit(1)
+    print("\nTất cả kiểm tra đều đạt.")
 
-    if len(review_id) > 1:
-        if all(s == review_id[0] for s in review_id[0][1:]):
-            print("[PASS] Các mốc có cùng id")
-        else:
-            print("[FAIL] Các mốc không có cùng id")
+
+if __name__ == "__main__":
+    main()
