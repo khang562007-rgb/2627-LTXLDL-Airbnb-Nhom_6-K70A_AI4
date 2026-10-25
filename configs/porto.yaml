@@ -1,12 +1,13 @@
 city: porto
 data_root: portugal/norte/porto
 currency: EUR
-snapshots: ["2025-09-21", "2025-12-25", "2026-03-26", "2026-06-23"]
+snapshots: ["2025-09-21", "2026-03-26", "2026-06-23", "2026-09-19"]
 seed: 42
 expected_days: 365
 ids: "data/samples/id_listing.csv"
 price_iqr_k: 2
 min_nights_cap: 365
+max_nights_cap: 1125
 long_stay_threshold: 30
 calendar_raw: "data/raw/{snap}/calendar.csv.gz"            # calendar thô tải về
 calendar_file: "data/processed/calendar_{snap}.csv"        # calendar đã lọc (đầu vào của pipeline gắn cờ)

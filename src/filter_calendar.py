@@ -8,8 +8,7 @@ from pathlib import Path
 
 import pandas as pd
 import yaml
-
-KEEP_COLS = ["listing_id", "date", "available"]
+KEEP_COLS = ["listing_id", "date", "available","minimum_nights","maximum_nights"]
 CHUNKSIZE = 1_000_000          # calendar thô có hàng triệu dòng nên đọc theo khối
 
 

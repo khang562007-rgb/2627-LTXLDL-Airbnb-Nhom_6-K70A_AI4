@@ -1,11 +1,8 @@
-"""Pipeline gắn cờ giá và calendar (Bạn 2), đọc thẳng dữ liệu tải từ Inside Airbnb.
-
+"""
 Thứ tự chạy, từ gốc repo:
     python src/download.py                                            # tải data/raw/<mốc>/...
     python src/flag_price_calendar.py --config configs/porto.yaml     # lọc 1.000 listing + gắn cờ
 
-Mỗi hàm cờ nhận DataFrame, trả về bản sao có thêm cột cờ (không sửa dữ liệu gốc).
-Mỗi file thô chỉ được đọc một lần.
 """
 import argparse
 from pathlib import Path
@@ -25,7 +22,7 @@ def read_listings(path, id_set):
 
 def read_calendar(path, id_set):
     parts = []
-    for chunk in pd.read_csv(path, usecols=["listing_id", "date", "available"],
+    for chunk in pd.read_csv(path, usecols=["listing_id", "date", "available", "minimum_nights", "maximum_nights"],
                              dtype={"listing_id": "str"}, chunksize=CHUNKSIZE):
         parts.append(chunk[chunk["listing_id"].isin(id_set)])
     return pd.concat(parts, ignore_index=True)
@@ -106,7 +103,22 @@ def calendar_days_wrong(df, ids, expected_days):
         "flagged_days_wrong": (n_days != expected_days).values,
     })
 
+def calendar_min_nights_outlier(df, cap):
+    file = df.copy()
+    file["flagged_cal_min_nights_outlier"] = file["minimum_nights"] > cap
+    return file
 
+
+def calendar_max_nights_outlier(df, cap):
+    file = df.copy()
+    file["flagged_cal_max_nights_outlier"] = file["maximum_nights"] > cap
+    return file
+
+
+def calendar_nights_inconsistent(df):
+    file = df.copy()
+    file["flagged_nights_inconsistent"] = file["maximum_nights"] < file["minimum_nights"]
+    return file
 # ---------- pipeline ----------
 def check_inputs(cfg):
     paths = [cfg["ids"]]
@@ -147,6 +159,9 @@ def run(cfg, out_dir="data/processed", report_dir="reports"):
         cal.to_csv(Path(out_dir) / f"calendar_{snap}.csv", index=False)
         cal = calendar_available_type(cal)
         cal = calendar_dup_key(cal)
+        cal = calendar_min_nights_outlier(cal, cfg["min_nights_cap"])
+        cal = calendar_max_nights_outlier(cal, cfg["max_nights_cap"])
+        cal = calendar_nights_inconsistent(cal)
         days = calendar_days_wrong(cal, ids, cfg["expected_days"])
 
         # --- cảnh báo ---
@@ -159,9 +174,9 @@ def run(cfg, out_dir="data/processed", report_dir="reports"):
         # --- ghi kết quả ---
         lst.to_csv(Path(out_dir) / f"flags_listings_{snap}.csv", index=False)
         days.to_csv(Path(out_dir) / f"flags_calendar_{snap}.csv", index=False)
-        bad_rows = cal[cal["flagged_available_type"] | cal["flagged_dup_key"]]      # chỉ các dòng calendar bị cờ
+        row_flags = [c for c in cal.columns if c.startswith("flagged_")]
+        bad_rows = cal[cal[row_flags].any(axis=1)]        
         bad_rows.to_csv(Path(out_dir) / f"flags_calendar_rows_{snap}.csv", index=False)
-
         counts = {c: int(t[c].sum()) for t in (lst, cal, days) for c in t.columns if c.startswith("flagged_")}
         rows.append({"snapshot": snap, "n_listings": len(lst), "n_calendar_rows": len(cal), **counts})
 

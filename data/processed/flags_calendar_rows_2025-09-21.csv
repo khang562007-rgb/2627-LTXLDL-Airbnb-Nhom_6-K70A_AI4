@@ -1,1 +1,1 @@
-listing_id,date,available,flagged_available_type,flagged_dup_key
+listing_id,date,available,minimum_nights,maximum_nights,flagged_available_type,flagged_dup_key,flagged_cal_min_nights_outlier,flagged_cal_max_nights_outlier,flagged_nights_inconsistent
