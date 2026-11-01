@@ -1,12 +1,22 @@
+# Unified configuration for the three Porto data workflows.
+# Paths that differed between branches are kept under their workflow sections.
 city: porto
 data_root: portugal/norte/porto
 currency: EUR
-snapshots: ["2025-09-21", "2025-12-25", "2026-03-26", "2026-06-23"]
+snapshots:
+  - "2025-09-21"
+  - "2026-03-26"
+  - "2026-06-23"
+  - "2026-09-19"
 seed: 42
+expected_days: 365
+
 paths:
-  raw: data/raw
-  interim: data/interim        # đã lọc, chưa gắn cờ
-  processed: data/processed    # đã gắn cờ, kết quả cuối
+  raw_root: data/raw
+  interim: data/interim # filtered, not flagged
+  processed: data/processed # flagged, final outputs
+  sample_root: data/samples
+
 sample:
   data_code: DSE2049-C04-G06-porto
   calendar_cols: [listing_id, date, available]
@@ -16,6 +26,7 @@ sample:
   listings:
     ids_path: data/samples/porto-listings.csv
     ids_url: "https://docs.google.com/spreadsheets/d/1wzH-Wy22LIeR2qaLpP5lDmkSn48gRqRjVrp2q3z69v8/export?format=csv&gid=0"
+  listing_ids_path: data/samples/id_listing.csv
 
 qa:
   reviews:
@@ -30,3 +41,42 @@ qa:
     capacity_max: 16
     attr_cols: [room_type, property_type, bedrooms]
     coord_drift_m: 200
+
+calendar:
+  raw_file: "data/raw/{snap}/calendar.csv.gz"
+  # Filtered calendar consumed by the flagging workflow.
+  interim_file: "data/interim/calendar_{snap}.csv"
+  flagged_file: "data/processed/calendar_{snap}.csv"
+  required_columns: [listing_id, date, available]
+  availability_min: 0
+  availability_max: 365
+
+listings:
+  raw_file: "data/raw/{snap}/listings.csv.gz"
+
+download:
+  base_url: "https://data.insideairbnb.com/portugal/norte/porto"
+  files: [listings.csv.gz, calendar.csv.gz, reviews.csv.gz]
+  stream_chunk_size: 1048576
+  timeout_seconds: 60
+
+  cleaning:
+  price_iqr_k: 2
+  min_nights_cap: 365
+  max_nights_cap: 1125
+  long_stay_threshold: 30
+  price_jump_ratio: 2
+
+# Compatibility map for consumers that still use the branch-specific names.
+# Select the relevant workflow section rather than relying on conflicting flat keys.
+workflows:
+  sample_and_qa:
+    raw_root: ".."
+    interim_dir: data/interim
+    processed_dir: data/processed
+  snapshot_pipeline:
+    raw_root: data/raw
+    listing_ids: data/samples/id_listing.csv
+    calendar_raw: "data/raw/{snap}/calendar.csv.gz"
+    calendar_filtered: "data/processed/calendar_{snap}.csv"
+    listings_raw: "data/raw/{snap}/listings.csv.gz"
