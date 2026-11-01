@@ -5,7 +5,7 @@ import yaml
 ROOT = Path(__file__).resolve().parent.parent
 cfg = yaml.safe_load(open(ROOT / "configs" / "porto.yaml", encoding="utf-8"))
 
-DATA = ROOT / cfg["paths"]["raw"]
+DATA = ROOT / cfg["paths"]["raw_root"]
 OUT = ROOT / cfg["paths"]["interim"]
 OUT.mkdir(parents=True, exist_ok=True)
 
@@ -21,9 +21,9 @@ except ImportError:
     print("chưa có pyarrow -> calendar chạy chậm hơn, nên cài: pip install pyarrow")
     
 def read_ids(block):
-    """Đọc danh sách id từ file trong repo; chưa có thì tải từ link rồi lưu lại."""
+    """Đọc danh sách id; nếu file chưa có hoặc rỗng thì tải lại từ link."""
     path = ROOT / block["ids_path"]
-    if not path.exists():
+    if not path.exists() or path.stat().st_size == 0:
         path.parent.mkdir(parents=True, exist_ok=True)
         pd.read_csv(block["ids_url"], dtype=str).to_csv(path, index=False, encoding="utf-8-sig")
     df = pd.read_csv(path, dtype=str, encoding="utf-8-sig")

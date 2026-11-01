@@ -1,11 +1,16 @@
 from pathlib import Path
 import pandas as pd
+import yaml
 
-PROCESSED_DIR = Path("data") / "processed"
+ROOT = Path(__file__).resolve().parent.parent
+with (ROOT / "configs" / "porto.yaml").open(encoding="utf-8") as config_file:
+    cfg = yaml.safe_load(config_file)
+
+DATA_DIR = ROOT / cfg["paths"]["interim"]
 REVIEWS = [50, 30, 25, 25]
 
 # Listings
-listing_files = sorted(PROCESSED_DIR.glob("listings_*.csv*"))
+listing_files = sorted(DATA_DIR.glob("listings_*.csv*"))
 if not listing_files:
     print("\n[FAIL] Không tìm thấy file listings_*.csv*")
 else:
@@ -26,7 +31,7 @@ else:
             listing_id.append(set(df["listing_id"]))
 
         if "room_type" in df.columns:
-            if df["room_type"].value_counts() == {"Entire home/apt": 875, "Private room": 125}:
+            if df["room_type"].value_counts().to_dict() == {"Entire home/apt": 875, "Private room": 125}:
                 print("[PASS] Đủ 875 Entire home/apt, 125 Private room")
             else:
                 print("[FAIL] Không đủ 875 Entire home/apt, 125 Private room")
@@ -60,7 +65,7 @@ else:
             print("[FAIL] Các mốc không có cùng id")
 
 # Calender
-cal_files = sorted(PROCESSED_DIR.glob("calendar_*.csv*"))
+cal_files = sorted(DATA_DIR.glob("calendar_*.csv*"))
 if not cal_files:
     print("\n[FAIL] Không tìm thấy file calendar_*.csv*")
 else:
@@ -79,13 +84,13 @@ else:
             calender_id.append(set(df["review_id"]))
 
     if len(calender_id) > 1:
-            if all(s == calender_id[0] for s in calender_id[0][1:]):
+            if all(s == calender_id[0] for s in calender_id[1:]):
                 print("[PASS] Các mốc có cùng id")
             else:
                 print("[FAIL] Các mốc không có cùng id")
 
 # Review
-review_files = sorted(PROCESSED_DIR.glob("reviews_*.csv*"))
+review_files = sorted(DATA_DIR.glob("reviews_*.csv*"))
 if not review_files:
     print("\n[FAIL] Không tìm thấy file reviews_*.csv*")
 else:
@@ -104,7 +109,7 @@ else:
             review_id.append(set(df["review_id"]))
 
     if len(review_id) > 1:
-        if all(s == review_id[0] for s in review_id[0][1:]):
+        if all(s == review_id[0] for s in review_id[1:]):
             print("[PASS] Các mốc có cùng id")
         else:
             print("[FAIL] Các mốc không có cùng id")

@@ -4,8 +4,8 @@ import requests
 import yaml
 
 
-ROOT = Path(__file__).resolve().parent
-CONFIG_PATH = ROOT / "outputs" / "porto_config.yaml"
+ROOT = Path(__file__).resolve().parent.parent
+CONFIG_PATH = ROOT / "configs" / "porto.yaml"
 
 with CONFIG_PATH.open(encoding="utf-8") as config_file:
     CONFIG = yaml.safe_load(config_file)
