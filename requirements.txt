@@ -1,4 +1,16 @@
+# Thư viện sử dụng trong project
+#  [NumPy](https://numpy.org/) (`numpy`) | 2.3.3 | Hỗ trợ tính toán số học và thao tác với mảng. 
+#  Được dùng trong các bước gắn cờ/đặc trưng dữ liệu như vị trí host và thuộc tính listing.
 numpy==2.3.3
+
+# [pandas](https://pandas.pydata.org/) (`pandas`) | 2.3.3 | 
+# Đọc, làm sạch, lọc, biến đổi và kiểm tra dữ liệu dạng bảng; là thư viện xử lý chính cho dữ liệu listing và calendar.
 pandas==2.3.3
+
+# [PyArrow](https://arrow.apache.org/docs/python/) (`pyarrow`) | 26.0.0 | 
+# Cung cấp hỗ trợ định dạng Apache Arrow/Parquet và tăng tốc đọc, ghi dữ liệu cho pandas. Project có kiểm tra sự hiện diện của PyArrow làm engine cho bước xử lý calendar.
 pyarrow==26.0.0
+
+# [PyYAML](https://pyyaml.org/) (`yaml`) | 6.0.3 | 
+# Đọc cấu hình pipeline từ các file YAML, ví dụ `configs/porto.yaml`. Tên cài đặt là `PyYAML`, còn tên import trong Python là `yaml`.
 PyYAML==6.0.3

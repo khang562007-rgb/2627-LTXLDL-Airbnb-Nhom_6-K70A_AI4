@@ -6,7 +6,7 @@ Chạy từ gốc repo:  python src/qa.py [--config configs/porto.yaml]
 import argparse
 import html
 from pathlib import Path
-
+from src.audit_flags import audit_table, check_collisions, sample_flagged
 import pandas as pd
 import yaml
 

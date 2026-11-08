@@ -19,7 +19,7 @@ paths:
 
 sample:
   data_code: DSE2049-C04-G06-porto
-  calendar_cols: [listing_id, date, available]
+  calendar_cols: [listing_id, date, available, minimum_nights, maximum_nights]
   reviews:
     ids_path: data/samples/review_ids.csv
     ids_url: "https://docs.google.com/spreadsheets/d/1Ru6653xzX4r29ywxoGSGA543F3QjXwQaVgC19WTwNEA/export?format=csv&gid=0"
@@ -47,7 +47,7 @@ calendar:
   # Filtered calendar consumed by the flagging workflow.
   interim_file: "data/interim/calendar_{snap}.csv"
   flagged_file: "data/processed/calendar_{snap}.csv"
-  required_columns: [listing_id, date, available]
+  required_columns: [listing_id, date, available, minimum_nights, maximum_nights]
   availability_min: 0
   availability_max: 365
 
