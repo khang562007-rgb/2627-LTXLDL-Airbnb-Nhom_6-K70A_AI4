@@ -9,6 +9,7 @@ STAGES = (
     "src/filter_all.py",
     "src/qa.py",
     "src/flag_property_cross.py",
+    "src/kpi_k3_k4.py"
 )
 
 

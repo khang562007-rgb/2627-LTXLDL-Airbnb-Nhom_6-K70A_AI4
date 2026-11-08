@@ -1,4 +1,17 @@
-"""Tính KPI K3 (tỷ lệ nguyên căn) và K4 (biến động nguồn cung)."""
+"""Tính KPI K3 (tỷ lệ nguyên căn) và K4 (biến động nguồn cung).
+
+Liên kết với QA: cột `id`.
+    QA (src/flag_property_cross.py) ghi data/processed/listings_property_flags_<mốc>.csv.gz gồm id + các cột cờ.
+    KPI đọc file đó, ghép với listings theo `id`, rồi BỎ các dòng bị cờ nằm trong danh sách của KPI đó
+    (configs/porto.yaml, mục kpi.skip_flags). QA chỉ cắm cờ, không xoá dòng; KPI mới là nơi quyết định bỏ.
+
+    kpi:
+      skip_flags:
+        k3: [room_type_category]   # K3 dùng room_type nên bỏ dòng có room_type lạ/thiếu
+        k4: []                     # K4 so sánh tập id nên KHÔNG bỏ dòng nào
+
+K3 xuất hai giá trị: value_pct (toàn bộ dòng, "trước QA") và value_pct_ok (sau khi bỏ dòng bị cờ).
+"""
 
 from __future__ import annotations
 
@@ -15,6 +28,7 @@ REQUIRED_COLUMNS = ["id", "room_type", "analysis_area"]
 ENTIRE_HOME_LABEL = "Entire home/apt"
 MISSING_AREA_LABEL = "(thiếu)"
 ALL_AREA_LABEL = "ALL"
+K3_COLUMNS = ["snapshot", "khu", "n_entire", "n_total", "value_pct"]
 
 
 def _find_listings_file(interim_dir: Path, snapshot: str) -> Path:
@@ -67,6 +81,54 @@ def _percentage(numerator: int, denominator: int) -> float | None:
     return round(numerator / denominator * 100, 2)
 
 
+# ---------------------------------------------------------------------------
+# Liên kết với QA qua cột id
+# ---------------------------------------------------------------------------
+
+def _flags_path(processed_dir: Path, snapshot: str) -> Path:
+    """File cờ do QA ghi cho một mốc."""
+    return processed_dir / f"listings_property_flags_{snapshot}.csv.gz"
+
+
+def load_ok(
+    frame: pd.DataFrame, snapshot: str, skip_cols: Sequence[str], processed_dir: Path
+) -> tuple[pd.DataFrame, int]:
+    """Bỏ các dòng bị QA cắm cờ trong skip_cols; ghép với file cờ theo `id`.
+
+    Trả về (bảng đã bỏ dòng bị cờ, số dòng bị bỏ). Không có cờ nào cần bỏ thì trả nguyên bảng.
+    Dừng với lỗi rõ ràng nếu thiếu file cờ, thiếu cột cờ, id trùng hoặc có id chưa được QA gắn cờ,
+    để KPI không lặng lẽ tính như thể không có cờ.
+    """
+    if not skip_cols:
+        return frame, 0
+
+    path = _flags_path(processed_dir, snapshot)
+    if not path.is_file():
+        raise FileNotFoundError(
+            f"Thiếu file cờ QA {path}. Hãy chạy src/flag_property_cross.py trước khi tính KPI."
+        )
+    flags = pd.read_csv(path, encoding="utf-8-sig", dtype={"id": str})
+
+    missing = [column for column in skip_cols if column not in flags.columns]
+    if missing:
+        raise ValueError(f"File cờ {path} thiếu cột: {', '.join(missing)}")
+    if frame["id"].duplicated().any() or flags["id"].duplicated().any():
+        raise ValueError(f"Mốc {snapshot}: id bị trùng ở listings hoặc ở file cờ, không ghép được.")
+
+    merged = frame.merge(flags[["id"] + skip_cols], on="id", how="left", validate="one_to_one")
+    if merged[skip_cols].isna().any().any():
+        raise ValueError(
+            f"Mốc {snapshot}: có id trong listings chưa có cờ từ QA. Hãy chạy lại QA cho đúng dữ liệu."
+        )
+
+    bad = merged[skip_cols].astype(bool).any(axis=1)   # True nếu dính bất kỳ cờ nào trong danh sách
+    return merged.loc[~bad, list(frame.columns)].reset_index(drop=True), int(bad.sum())
+
+
+# ---------------------------------------------------------------------------
+# K3
+# ---------------------------------------------------------------------------
+
 def k3_entire_share(listings: Mapping[str, pd.DataFrame]) -> pd.DataFrame:
     """Tính tỷ lệ Entire home/apt theo khu và thêm dòng ALL cho mỗi mốc."""
     result_rows: list[dict[str, object]] = []
@@ -116,11 +178,27 @@ def k3_entire_share(listings: Mapping[str, pd.DataFrame]) -> pd.DataFrame:
             }
         )
 
-    return pd.DataFrame(
-        result_rows,
-        columns=["snapshot", "khu", "n_entire", "n_total", "value_pct"],
-    )
+    return pd.DataFrame(result_rows, columns=K3_COLUMNS)
 
+
+def combine_k3(k3_all: pd.DataFrame, k3_ok: pd.DataFrame) -> pd.DataFrame:
+    """Ghép K3 "toàn bộ" với K3 "sau khi bỏ dòng bị cờ" theo (mốc, khu)."""
+    ok = k3_ok.rename(
+        columns={"n_entire": "n_entire_ok", "n_total": "n_total_ok", "value_pct": "value_pct_ok"}
+    )
+    out = k3_all.merge(ok, on=["snapshot", "khu"], how="left")
+    count_cols = ["n_entire_ok", "n_total_ok"]
+    out[count_cols] = out[count_cols].fillna(0).astype(int)   # khu bị bỏ hết dòng: số đếm = 0
+    out["n_skipped"] = out["n_total"] - out["n_total_ok"]
+    return out[
+        ["snapshot", "khu", "n_entire", "n_total", "value_pct",
+         "n_skipped", "n_total_ok", "n_entire_ok", "value_pct_ok"]
+    ]
+
+
+# ---------------------------------------------------------------------------
+# K4
+# ---------------------------------------------------------------------------
 
 def k4_supply_change(
     listings: Mapping[str, pd.DataFrame], snaps: Sequence[str]
@@ -214,7 +292,7 @@ def _validate_outputs(
     k4: pd.DataFrame,
     snaps: Sequence[str],
 ) -> None:
-    """Kiểm tra tổng dòng, tổng nguyên căn và phép tính trên dữ liệu đầu vào."""
+    """Kiểm tra tổng dòng, tổng nguyên căn và phép tính trên dữ liệu đầu vào (bản chưa bỏ cờ)."""
     for snapshot in snaps:
         source = listings[snapshot]
         rows = k3[k3["snapshot"] == snapshot]
@@ -245,7 +323,7 @@ def _validate_outputs(
                 f"K3 mốc {snapshot}: n_entire ALL không khớp dữ liệu đầu vào."
             )
 
-        # 87,5% là mốc đối chiếu đã được nhóm báo cáo cho mẫu 1.000 dòng.
+        # 87,5% là mốc đối chiếu đã được nhóm báo cáo cho mẫu 1.000 dòng (bản CHƯA bỏ cờ).
         # Nếu một snapshot thiếu dòng, tỷ lệ thực tế có thể khác; không ép số liệu.
         if len(source) == 1000 and all_row["value_pct"] != 87.5:
             raise AssertionError(
@@ -270,6 +348,30 @@ def _validate_outputs(
             raise AssertionError(f"K4 mốc {current_snapshot}: n_prev không khớp mốc trước.")
 
 
+def _validate_skip(
+    listings: Mapping[str, pd.DataFrame],
+    listings_ok: Mapping[str, pd.DataFrame],
+    skipped: Mapping[str, int],
+    k3: pd.DataFrame,
+    snaps: Sequence[str],
+) -> None:
+    """Kiểm tra phần "sau khi bỏ cờ": số dòng bỏ + số dòng giữ phải bằng số dòng ban đầu."""
+    for snapshot in snaps:
+        total = len(listings[snapshot])
+        kept = len(listings_ok[snapshot])
+        if kept + skipped[snapshot] != total:
+            raise AssertionError(
+                f"K3 mốc {snapshot}: giữ {kept} + bỏ {skipped[snapshot]} khác tổng {total}."
+            )
+        rows = k3[k3["snapshot"] == snapshot]
+        all_row = rows[rows["khu"] == ALL_AREA_LABEL].iloc[0]
+        area_rows = rows[rows["khu"] != ALL_AREA_LABEL]
+        if int(all_row["n_total_ok"]) != kept or int(all_row["n_skipped"]) != skipped[snapshot]:
+            raise AssertionError(f"K3 mốc {snapshot}: dòng ALL không khớp số dòng giữ/bỏ.")
+        if int(area_rows["n_skipped"].sum()) != skipped[snapshot]:
+            raise AssertionError(f"K3 mốc {snapshot}: tổng n_skipped theo khu khác số dòng bỏ.")
+
+
 def main() -> None:
     """Đọc config, tính KPI, kiểm tra kết quả và ghi hai tệp CSV."""
     # Tránh lỗi in chú thích tiếng Việt trên một số terminal Windows dùng cp1252.
@@ -290,6 +392,10 @@ def main() -> None:
     snapshots = config["snapshots"]
     interim_dir = project_root / config["paths"]["interim"]
     processed_dir = project_root / config["paths"]["processed"]
+    skip_config = (config.get("kpi") or {}).get("skip_flags") or {}
+    k3_skip_cols = list(skip_config.get("k3", []))
+    if skip_config.get("k4"):
+        print("CẢNH BÁO: K4 so sánh tập id nên không bỏ dòng nào; bỏ qua kpi.skip_flags.k4.")
 
     # Đọc từng mốc theo thứ tự trong config; không lọc hoặc sửa dòng đầu vào.
     listings: dict[str, pd.DataFrame] = {}
@@ -313,9 +419,25 @@ def main() -> None:
 
     _warn_room_type_variants(listings)
 
-    k3 = k3_entire_share(listings)
+    # K3: tính hai lần, trước và sau khi bỏ dòng bị QA cắm cờ (ghép theo id).
+    listings_ok: dict[str, pd.DataFrame] = {}
+    skipped: dict[str, int] = {}
+    for snapshot in snapshots:
+        listings_ok[snapshot], skipped[snapshot] = load_ok(
+            listings[snapshot], snapshot, k3_skip_cols, processed_dir
+        )
+        if k3_skip_cols:
+            print(
+                f"K3 mốc {snapshot}: bỏ {skipped[snapshot]} dòng bị cờ {k3_skip_cols}, "
+                f"giữ {len(listings_ok[snapshot])} dòng."
+            )
+
+    k3_all = k3_entire_share(listings)
     k4 = k4_supply_change(listings, snapshots)
-    _validate_outputs(listings, k3, k4, snapshots)
+    _validate_outputs(listings, k3_all, k4, snapshots)
+
+    k3 = combine_k3(k3_all, k3_entire_share(listings_ok))
+    _validate_skip(listings, listings_ok, skipped, k3, snapshots)
 
     # Báo tỷ lệ K3 thực tế của snapshot thiếu dòng để người dùng đối chiếu.
     for snapshot in snapshots:
@@ -338,7 +460,7 @@ def main() -> None:
                 "CẢNH BÁO: K4 ALL bằng 0 ở mọi cặp mốc; "
                 "đây là kết quả đúng theo các ID hiện có trong mẫu."
             )
-        elif not all_k4_zero:
+        else:
             print(
                 "Thông tin: tập ID thay đổi giữa các mốc; K4 giữ nguyên "
                 "kết quả tính trực tiếp từ ID, không ép về 0."

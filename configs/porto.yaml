@@ -30,3 +30,8 @@ qa:
     capacity_max: 16
     attr_cols: [room_type, property_type, bedrooms]
     coord_drift_m: 200
+
+kpi:
+  skip_flags:
+    k3: [room_type_category]
+    k4: []
