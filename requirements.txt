@@ -14,3 +14,4 @@ pyarrow==26.0.0
 # [PyYAML](https://pyyaml.org/) (`yaml`) | 6.0.3 | 
 # Đọc cấu hình pipeline từ các file YAML, ví dụ `configs/porto.yaml`. Tên cài đặt là `PyYAML`, còn tên import trong Python là `yaml`.
 PyYAML==6.0.3
+langdetect==1.0.9

@@ -19,7 +19,7 @@ paths:
 
 sample:
   data_code: DSE2049-C04-G06-porto
-  calendar_cols: [listing_id, date, available, minimum_nights, maximum_nights]
+  calendar_cols: [listing_id, date, available]
   reviews:
     ids_path: data/samples/review_ids.csv
     ids_url: "https://docs.google.com/spreadsheets/d/1Ru6653xzX4r29ywxoGSGA543F3QjXwQaVgC19WTwNEA/export?format=csv&gid=0"
@@ -47,7 +47,7 @@ calendar:
   # Filtered calendar consumed by the flagging workflow.
   interim_file: "data/interim/calendar_{snap}.csv"
   flagged_file: "data/processed/calendar_{snap}.csv"
-  required_columns: [listing_id, date, available, minimum_nights, maximum_nights]
+  required_columns: [listing_id, date, available]
   availability_min: 0
   availability_max: 365
 
@@ -80,3 +80,30 @@ workflows:
     calendar_raw: "data/raw/{snap}/calendar.csv.gz"
     calendar_filtered: "data/processed/calendar_{snap}.csv"
     listings_raw: "data/raw/{snap}/listings.csv.gz"
+availability_commercial: 240
+tourist_tax_per_night: 3          # EUR/khách/đêm, nguồn: cổng thuế du lịch Porto
+tourist_tax_guests: 2             # giả định số khách mỗi đêm (hoặc dùng accommodates)
+tourist_tax_max_nights: 7         # trần đêm liên tiếp mỗi lượt
+kpi_commercial_share:
+  id: K06
+  slug: commercial_share
+k05_revenue_tax:
+  id: K05
+  slug: revenue_tax
+  review_rate: 0.5
+  average_stay_nights: 3
+  sensitivity_average_stay: [2, 3, 5]
+  occupancy_cap: 0.70
+  max_nights_per_year: 365
+  use_iqr_fence: true
+  iqr_k: 1.5
+  tourist_tax_per_night:
+    short_stay: 3
+    long_stay: 3
+  license_exempt_values: ["exempt"]
+baseline:
+  # Ưu tiên langdetect; dùng bộ từ dừng dự phòng nếu môi trường chưa cài gói này.
+  lang_backend: auto
+  min_lang_confidence: 0.5
+  short_max_tokens: 3
+  short_min_lang_confidence: 0.1
