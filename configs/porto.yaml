@@ -1,7 +1,7 @@
 city: porto
 data_root: portugal/norte/porto
 currency: EUR
-snapshots: ["2025-09-21", "2026-09-19", "2026-03-26", "2026-06-23"]
+snapshots: ["2025-09-21", "2026-03-26", "2026-06-23", "2026-09-19"]
 seed: 42
 paths:
   raw: data/raw
@@ -21,6 +21,45 @@ qa:
   reviews:
     min_comment_len: 3
     dup_content_keys: [listing_id, reviewer_id, date, comments]
-    max_days_before_host_since: 30
     score_min: 0
     score_max: 5
+kpi:
+  area_col: analysis_area                  # cột đầu vào, từ porto-listings.csv
+  output_area_col: neighbourhood_cleansed  # tên cột trong file KPI xuất ra
+  min_cell_n: 30
+  max_excluded_share: 0.20
+  exclude_rules: [exclude_from_llm_sample]
+
+  columns:
+    reviews:
+      k7: [id, listing_id, date, comment_clean]
+      k8: [id, listing_id, date]
+    areas:
+      path: data/samples/porto-listings.csv
+      cols: [listing_id, analysis_area]
+    flags:
+      review_exclude: [review_dup_id, review_dup_content, review_orphan,
+                       review_date_invalid, comment_empty_or_short, exclude_from_llm_sample]
+      review_warn: [comment_markup]
+      listing_warn: [no_reviews, reviews_inconsistent, review_score_range]
+
+  k7:
+    aspects:
+      community: [noise, neighbours, area_hygiene, safety]
+      other: [location, unit_cleanliness, host, value, amenities, accuracy, other]
+    handlabel: {n: 150, path: data/interim/k7_handlabel_sample.csv}
+
+    llm:
+      provider: openai_compat
+      base_url: https://api.shopaikey.com/v1
+      api_key_env: OPENAI_COMPAT_API_KEY
+      model: gpt-4o-mini
+      temperature: null
+      batch_size: 30
+      sleep_s: 4
+      retry_sleep_s: 20
+      max_requests_per_run: 600
+      prompt_version: v1
+      cache_path: data/interim/k7_llm_cache.jsonl
+      labels_path: data/interim/k7_labels.csv
+      usage_log: AI_USAGE.md
