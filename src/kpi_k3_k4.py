@@ -1,17 +1,3 @@
-"""Tính KPI K3 (tỷ lệ nguyên căn) và K4 (biến động nguồn cung).
-
-Liên kết với QA: cột `id`.
-    QA (src/flag_property_cross.py) ghi data/processed/listings_property_flags_<mốc>.csv.gz gồm id + các cột cờ.
-    KPI đọc file đó, ghép với listings theo `id`, rồi BỎ các dòng bị cờ nằm trong danh sách của KPI đó
-    (configs/porto.yaml, mục kpi.skip_flags). QA chỉ cắm cờ, không xoá dòng; KPI mới là nơi quyết định bỏ.
-
-    kpi:
-      skip_flags:
-        k3: [room_type_category]   # K3 dùng room_type nên bỏ dòng có room_type lạ/thiếu
-        k4: []                     # K4 so sánh tập id nên KHÔNG bỏ dòng nào
-
-K3 xuất hai giá trị: value_pct (toàn bộ dòng, "trước QA") và value_pct_ok (sau khi bỏ dòng bị cờ).
-"""
 
 from __future__ import annotations
 
