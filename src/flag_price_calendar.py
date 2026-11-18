@@ -3,12 +3,16 @@
 Chạy từ gốc repo: python src/flag_price_calendar.py [--config configs/porto.yaml]
 """
 import argparse
+import sys
 from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
 from src.audit_flags import audit_table, check_collisions, sample_flagged
 import pandas as pd
 import yaml
-
-ROOT = Path(__file__).resolve().parent.parent
 RULES = {
     "price_type": ("flag", "listings", "price chứa ký tự không thuộc định dạng số", "Sai kiểu giá", "Tạo price_clean, giữ nguyên price"),
     "price_missing": ("flag", "listings", "price thiếu hoặc không parse được", "Thiếu giá", "Gắn cờ"),

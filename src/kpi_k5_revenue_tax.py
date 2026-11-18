@@ -24,9 +24,9 @@ import pandas as pd
 import yaml
 
 try:
-    from kpi2 import load_area_map
+    from src.kpi_k6_commercial_share import load_area_map
 except ImportError:                                   # chạy dạng package: python -m src.kpi5
-    from src.kpi2 import load_area_map
+    from src.kpi_k6_commercial_share import load_area_map
 
 COLUMNS = ["kpi_id", "kpi_name", "snapshot", "neighbourhood_cleansed", "period",
            "value", "unit", "currency", "n_used", "n_excluded"]
@@ -65,14 +65,44 @@ def cap_nights(raw, p):
 
 
 # ---------- dữ liệu ----------
+def _find_table(folder: Path, prefix: str, snap: str) -> Path | None:
+    for ext in (".csv.gz", ".csv"):
+        p = folder / f"{prefix}_{snap}{ext}"
+        if p.exists():
+            return p
+    return None
+
+
 def prepare(snap, cfg, area_map, p):
-    flags = pd.read_csv(Path(cfg["paths"]["processed"]) / f"flags_listings_{snap}.csv", dtype={"id": "str"})
-    raw = pd.read_csv(cfg["listings"]["raw_file"].format(snap=snap),
-                      usecols=["id", "number_of_reviews_ltm", "license"], dtype={"id": "str", "license": "str"})
-    df = flags.merge(raw.drop_duplicates("id"), on="id", how="left")
+    processed = Path(cfg["paths"]["processed"])
+    interim = Path(cfg["paths"]["interim"])
+    flags_path = _find_table(processed, "listings_price_flags", snap) or _find_table(processed, "flags_listings", snap)
+    if flags_path is None:
+        raise FileNotFoundError(
+            f"Thiếu file cờ giá cho mốc {snap} trong {processed} (chạy src/flag_price_calendar.py trước)"
+        )
+    flags = pd.read_csv(flags_path, dtype={"id": "str"})
+    for col in ("long_stay_listing", "price_outlier", "availability_out_of_range", "min_nights_outlier"):
+        if f"flagged_{col}" not in flags.columns and col in flags.columns:
+            flags[f"flagged_{col}"] = flags[col]
+
+    interim_ls = _find_table(interim, "listings", snap)
+    base_cols = ["id", "minimum_nights", "availability_365", "number_of_reviews_ltm", "license", "analysis_area"]
+    if interim_ls is not None:
+        avail_cols = [c for c in base_cols if c in pd.read_csv(interim_ls, nrows=0).columns]
+        raw = pd.read_csv(interim_ls, usecols=avail_cols, dtype={"id": "str", "license": "str"})
+    else:
+        raw = pd.read_csv(
+            cfg["listings"]["raw_file"].format(snap=snap),
+            usecols=["id", "minimum_nights", "availability_365", "number_of_reviews_ltm", "license"],
+            dtype={"id": "str", "license": "str"},
+        )
+    extra_cols = [c for c in raw.columns if c == "id" or c not in flags.columns]
+    df = flags.merge(raw.drop_duplicates("id")[extra_cols], on="id", how="left")
     df["reviews_l365"] = df["number_of_reviews_ltm"]
-    df["analysis_area"] = df["id"].map(area_map)
-    lic = df["license"].str.strip().str.lower()
+    if "analysis_area" not in df.columns or df["analysis_area"].isna().any():
+        df["analysis_area"] = df["id"].map(area_map)
+    lic = df["license"].astype("string").str.strip().str.lower()
     df["has_license"] = df["license"].notna() & ~lic.isin([v.lower() for v in p["license_exempt_values"]])
     df["segment"] = np.where(df["flagged_long_stay_listing"], "long_stay", "short_stay")
     df["used"] = df["price_clean"].gt(0)              # thiếu giá hoặc giá <= 0 thì loại, ghi n_excluded
@@ -153,6 +183,10 @@ def checks(df, used, cap, snap, cfg):
     add("license_exempt", int((df["license"].notna() & ~df["has_license"]).sum()), "cần xác nhận ý nghĩa của giá trị này")
     add("listings_without_area", int(df["analysis_area"].isna().sum()))
     cal_path = Path(cfg["calendar"]["interim_file"].format(snap=snap))
+    if not cal_path.exists():
+        alt = _find_table(Path(cfg["paths"]["interim"]), "calendar", snap)
+        if alt is not None:
+            cal_path = alt
     if cal_path.exists():
         cal = pd.read_csv(cal_path, usecols=["listing_id", "available"], dtype={"listing_id": "str"})
         unavail = cal[cal["available"] == "f"].groupby("listing_id").size()

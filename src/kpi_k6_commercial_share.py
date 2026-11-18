@@ -1,7 +1,7 @@
 """KPI tỷ lệ listing vận hành kiểu thương mại/trung hạn, theo khu x mốc, xuất dạng long format.
 
-Dùng trong code:   from kpi2 import run;  kq = run(cfg)
-Chạy dòng lệnh:    python src/kpi2.py --config configs/porto.yaml
+Dùng trong code:   from src.kpi_k6_commercial_share import run;  kq = run(cfg)
+Chạy dòng lệnh:    python src/kpi_k6_commercial_share.py --config configs/porto.yaml
 
 Đầu ra: data/processed/kpi_<id>_<slug>.csv với các cột
     kpi_id, kpi_name, snapshot, neighbourhood_cleansed, period, value, unit, currency, n_used, n_excluded
@@ -82,6 +82,36 @@ def to_long(g, snap, kpi_id):
     return pd.concat(frames, ignore_index=True)[COLUMNS]
 
 
+def _find_table(folder: Path, prefix: str, snap: str) -> Path | None:
+    for ext in (".csv.gz", ".csv"):
+        p = folder / f"{prefix}_{snap}{ext}"
+        if p.exists():
+            return p
+    return None
+
+
+def load_flagged_listings(cfg, snap: str) -> pd.DataFrame:
+    processed = Path(cfg["paths"]["processed"])
+    interim = Path(cfg["paths"]["interim"])
+    flags_path = _find_table(processed, "listings_price_flags", snap) or _find_table(processed, "flags_listings", snap)
+    if flags_path is None:
+        raise FileNotFoundError(
+            f"Thieu file co gia cho moc {snap} trong {processed} (chay src/flag_price_calendar.py truoc)"
+        )
+    lst = pd.read_csv(flags_path, dtype={"id": "str"})
+    for col in ("availability_out_of_range", "min_nights_outlier", "long_stay_listing"):
+        if f"flagged_{col}" not in lst.columns and col in lst.columns:
+            lst[f"flagged_{col}"] = lst[col]
+    if "availability_365" not in lst.columns:
+        interim_ls = _find_table(interim, "listings", snap)
+        if interim_ls is None:
+            raise FileNotFoundError(f"Thieu listings_{snap}.csv(.gz) trong {interim}")
+        base = pd.read_csv(interim_ls, usecols=["id", "availability_365"], dtype={"id": "str"})
+        lst = lst.merge(base.drop_duplicates("id"), on="id", how="left")
+    lst["availability_365"] = pd.to_numeric(lst["availability_365"], errors="coerce")
+    return lst
+
+
 def run(cfg, save=True):
     meta = cfg.get("kpi_commercial_share", {})
     kpi_id = meta.get("id", "K06")                    # đối chiếu mã KPI với bảng KPI của nhóm
@@ -90,17 +120,14 @@ def run(cfg, save=True):
     in_dir = Path(cfg["paths"]["processed"])
     parts = []
     for snap in cfg["snapshots"]:
-        path = in_dir / f"flags_listings_{snap}.csv"
-        if not path.exists():
-            raise FileNotFoundError(f"Thieu {path} (chay buoc gan co truoc)")
-        lst = pd.read_csv(path, dtype={"id": "str"})
+        lst = load_flagged_listings(cfg, str(snap))
         if lst["id"].map(area_map).isna().any():
             print(f"[CANH BAO] {snap}: co listing khong co analysis_area")
         parts.append(to_long(kpi_by_area(lst, area_map, cfg["availability_commercial"]), str(snap), kpi_id))
     out = pd.concat(parts, ignore_index=True)
     if save:
         path = in_dir / f"kpi_{kpi_id.lower()}_{slug}.csv"
-        out.to_csv(path, index=False)
+        out.to_csv(path, index=False, encoding="utf-8-sig")
         print("Da ghi:", path)
     return out
 

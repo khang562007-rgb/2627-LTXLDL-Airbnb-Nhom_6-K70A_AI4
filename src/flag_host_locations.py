@@ -3,12 +3,16 @@
 Chạy từ gốc repo: python src/flag_host_locations.py [--config configs/porto.yaml]
 """
 import argparse
+import sys
 from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
 from src.audit_flags import audit_table, check_collisions, sample_flagged
 import pandas as pd
 import yaml
-
-ROOT = Path(__file__).resolve().parent.parent
 RULES = {
     "dup_id_in_snapshot": ("flag", "listings", "id xuất hiện từ 2 lần trở lên", "Khóa listing trùng", "Gắn cờ"),
     "host_id_missing": ("flag", "listings", "host_id bị thiếu", "Không xác định được chủ nhà", "Gắn cờ"),
@@ -64,10 +68,16 @@ def flag_host_location(df, q):
     porto = q.get("porto_bounds", [41.10, 41.25, -8.70, -8.50])
     out["coord_outside_porto"] = _bounds_mask(out, porto)
     bounds = q.get("area_bounds", {})
-    def outside_area(row):
-        area = row.get("analysis_area")
-        return area not in bounds or bool(_bounds_mask(row.to_frame().T, bounds[area]).iloc[0])
-    out["coord_outside_area"] = out.apply(outside_area, axis=1) if bounds else False
+    if bounds and "analysis_area" in out.columns:
+        b_df = pd.DataFrame.from_dict(bounds, orient="index", columns=["min_lat", "max_lat", "min_lon", "max_lon"])
+        mapped = out[["analysis_area"]].join(b_df, on="analysis_area")
+        in_area = (
+            lat.between(mapped["min_lat"], mapped["max_lat"])
+            & lon.between(mapped["min_lon"], mapped["max_lon"])
+        )
+        out["coord_outside_area"] = ~in_area
+    else:
+        out["coord_outside_area"] = False
     out["neighbourhood_missing_or_unknown"] = out["neighbourhood_cleansed"].isna()
     return out
 
@@ -84,8 +94,14 @@ def main():
     for snap in cfg["snapshots"]:
         df = pd.read_csv(find_file(interim, snap), dtype={"id": str, "host_id": str}, low_memory=False)
         flagged = flag_host_location(df, q)
+        since_null = int(pd.to_datetime(df.get("host_since"), errors="coerce").isna().sum())
         for rule in RULES:
-            add(rule, snap, len(flagged), flagged[rule].sum())
+            note = ""
+            if rule == "host_since_invalid" and since_null:
+                note = f"host_since thiếu: {since_null}/{len(df)}"
+            elif rule == "coord_outside_area" and not q.get("area_bounds"):
+                note = "chưa cấu hình area_bounds"
+            add(rule, snap, len(flagged), flagged[rule].sum(), note)
         flags = list(RULES)
         flagged[["id"] + flags].to_csv(processed / f"listings_host_location_flags_{snap}.csv.gz",
                                          index=False, encoding="utf-8-sig")

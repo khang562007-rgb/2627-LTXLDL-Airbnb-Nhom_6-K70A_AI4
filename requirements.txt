@@ -14,4 +14,19 @@ pyarrow==26.0.0
 # [PyYAML](https://pyyaml.org/) (`yaml`) | 6.0.3 | 
 # Đọc cấu hình pipeline từ các file YAML, ví dụ `configs/porto.yaml`. Tên cài đặt là `PyYAML`, còn tên import trong Python là `yaml`.
 PyYAML==6.0.3
+
+# [langdetect](https://pypi.org/project/langdetect/) (`langdetect`) | 1.0.9 |
+# Nhận diện ngôn ngữ tự động cho nội dung review trong bước NLP Baseline (`src/baseline.py`).
 langdetect==1.0.9
+
+# [Requests](https://requests.readthedocs.io/) (`requests`) | 2.34.2 |
+# Gửi HTTP request để tải dữ liệu mẫu (`src/download.py`) và gọi API LLM gắn nhãn (`src/llm_label.py`).
+requests==2.34.2
+
+# [Matplotlib](https://matplotlib.org/) (`matplotlib`) | 3.11.1 |
+# Vẽ các biểu đồ trực quan hóa kết quả QA, KPI (K01-K08) và phân tích LLM ra thư mục `figures/` (`src/viz.py`).
+matplotlib==3.11.1
+
+# [python-dotenv](https://pypi.org/project/python-dotenv/) (`dotenv`) | 1.2.4 |
+# Đọc biến môi trường (như `OPENAI_COMPAT_API_KEY`) từ file `.env` khi chạy gắn nhãn LLM (`src/llm_label.py`).
+python-dotenv==1.2.4

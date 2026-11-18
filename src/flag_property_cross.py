@@ -9,13 +9,18 @@ Kết quả:
 import argparse
 import json
 import re
+import sys
 from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
 from src.audit_flags import audit_table, check_collisions, sample_flagged
 import numpy as np
 import pandas as pd
 import yaml
 
-ROOT = Path(__file__).resolve().parent.parent
 ID = "id"  # khoá của bảng listings
 
 # tên: (loại, bảng, điều kiện, lý do, hành động)  -- cùng dạng với RULES của qa.py (reviews)

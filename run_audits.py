@@ -26,8 +26,8 @@ after = before.merge(
 )
 
 # audit_flags.py hiện nhận diện tên cột bắt đầu bằng "flag_".
-# Các cột cờ trong file của project chưa có tiền tố này, nên đổi tên trước khi kiểm tra.
-flag_columns = [col for col in flags.columns if col != "id"]
+# Các cột cờ trong file của project chưa có tiền tố này, nên đổi tên trước khi kiểm tra (bỏ qua cột *_clean).
+flag_columns = [col for col in flags.columns if col != "id" and not col.endswith("_clean")]
 after = after.rename(columns={col: f"flag_{col}" for col in flag_columns})
 
 # Kiểm tra số dòng và các cột gốc; in thống kê cho từng cột cờ
