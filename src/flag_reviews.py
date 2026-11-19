@@ -5,19 +5,15 @@ Chạy từ gốc repo:  python src/qa.py [--config configs/porto.yaml]
 """
 import argparse
 import html
-import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
-
-from src.audit_flags import audit_table, check_collisions, sample_flagged
 import pandas as pd
 import yaml
+
+ROOT = Path(__file__).resolve().parent.parent
 TAG = r"<[a-zA-Z/][^>]*>"
 BR = r"<br\s*/?>"
-LS_COLS = {"id", "last_scraped", "host_since", "number_of_reviews", "last_review"}
+LS_COLS = {"id", "last_scraped", "number_of_reviews", "last_review"}
 LS_NEEDED = LS_COLS - {"last_review"}          # last_review thiếu thì vẫn chạy được
 
 # tên: (loại, bảng, điều kiện, lý do, hành động)
@@ -29,9 +25,9 @@ RULES = {
     "review_orphan": ("flag", "reviews", "listing_id không có trong listings của nhóm cùng mốc",
                       "Review mồ côi", "Gắn cờ"),
     "review_date_invalid": ("flag", "reviews",
-                            "Ngày null, sau last_scraped, hoặc trước host_since quá max_days_before_host_since",
-                            "Ngày vô lý (host_since là ngày host hiện tại, listing có thể đổi chủ)",
-                            "Gắn cờ, vẫn giữ trong mẫu LLM"),
+                        "Ngày null hoặc sau last_scraped",
+                        "Ngày vô lý",
+                        "Gắn cờ, vẫn giữ trong mẫu LLM"),
     "comment_markup": ("flag", "reviews", "comments chứa thẻ HTML (như <br/>)",
                        "Làm nhiễu LLM", "Tạo cột comment_clean, giữ nguyên cột gốc"),
     "comment_empty_or_short": ("flag", "reviews", "comment_clean rỗng hoặc dưới min_comment_len ký tự",
@@ -90,20 +86,17 @@ def flag_review_table(rv, ls, q):
     info = ls.drop_duplicates("id").set_index("id")
     d = pd.to_datetime(rv["date"], errors="coerce")
     scraped = pd.to_datetime(rv["listing_id"].map(info["last_scraped"]), errors="coerce")
-    since = pd.to_datetime(rv["listing_id"].map(info["host_since"]), errors="coerce")
 
-    rv["days_before_host_since"] = (since - d).dt.days        # dương = review sớm hơn host_since
     rv["_date_null"] = d.isna()
     rv["_after_scrape"] = d > scraped
-    rv["_before_host"] = rv["days_before_host_since"] > q.get("max_days_before_host_since", 0)
-    rv["review_date_invalid"] = rv["_date_null"] | rv["_after_scrape"] | rv["_before_host"]
+    rv["review_date_invalid"] = rv["_date_null"] | rv["_after_scrape"]
     return rv
 
 
 def date_note(rv, ls):
-    hs_null = int(pd.to_datetime(ls["host_since"], errors="coerce").isna().sum())
-    return (f"ngày null={int(rv['_date_null'].sum())}; sau last_scraped={int(rv['_after_scrape'].sum())}; "
-            f"trước host_since={int(rv['_before_host'].sum())}; listing thiếu host_since={hs_null}")
+    return (f"ngày null={int(rv['_date_null'].sum())}; "
+            f"sau last_scraped={int(rv['_after_scrape'].sum())}")
+
 
 
 def flag_text(rv, q):
