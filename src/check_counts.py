@@ -1,3 +1,4 @@
+import argparse
 from pathlib import Path
 import re
 import sys
@@ -8,7 +9,14 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
 ROOT = Path(__file__).resolve().parent.parent
-with (ROOT / "configs" / "porto.yaml").open(encoding="utf-8") as config_file:
+ap = argparse.ArgumentParser(description="Kiểm tra số dòng dữ liệu đã lọc trong data/interim")
+ap.add_argument("--config", default="configs/porto.yaml", help="Đường dẫn file cấu hình YAML")
+args = ap.parse_args()
+
+cfg_path = Path(args.config)
+if not cfg_path.is_absolute():
+    cfg_path = ROOT / cfg_path
+with cfg_path.open(encoding="utf-8") as config_file:
     cfg = yaml.safe_load(config_file)
 
 DATA_DIR = ROOT / cfg["paths"]["interim"]

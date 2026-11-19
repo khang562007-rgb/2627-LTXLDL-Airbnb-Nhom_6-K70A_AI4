@@ -231,7 +231,7 @@ def main():
     else:
         print(
             f"[INFO] Chưa có file nhãn tay {hl_path}. "
-            "Tạo mẫu bằng: python src/kpi_k7_evidence_review.py configs/porto.yaml data/processed/reviews_valid.csv data/processed --handlabel"
+            "Tạo mẫu bằng: python src/kpi_k7_community_complaint.py configs/porto.yaml data/processed/reviews_valid.csv data/processed --handlabel"
         )
 
     eval_cross_agreement(base, llm, out_dir)

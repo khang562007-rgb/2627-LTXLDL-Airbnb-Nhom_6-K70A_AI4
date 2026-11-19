@@ -13,3 +13,11 @@ listing_sample_coverage,check,listings,2025-09-21,listing trong file cờ không
 listing_sample_coverage,check,listings,2026-03-26,listing trong file cờ không có review nào trong mẫu LLM (không có review hợp lệ để chọn),Listing không có nhãn LLM,Báo cáo (rows_flagged = số listing không có review trong mẫu),1000,365,
 listing_sample_coverage,check,listings,2026-06-23,listing trong file cờ không có review nào trong mẫu LLM (không có review hợp lệ để chọn),Listing không có nhãn LLM,Báo cáo (rows_flagged = số listing không có review trong mẫu),1000,365,
 listing_sample_coverage,check,listings,2026-09-19,listing trong file cờ không có review nào trong mẫu LLM (không có review hợp lệ để chọn),Listing không có nhãn LLM,Báo cáo (rows_flagged = số listing không có review trong mẫu),974,349,
+label_coverage,check,reviews,2025-09-21,review trong mẫu LLM chưa có nhãn LLM,K7 thiếu mẫu số,Báo cáo (rows_flagged = số review thiếu nhãn),635,0,
+label_coverage,check,reviews,2026-03-26,review trong mẫu LLM chưa có nhãn LLM,K7 thiếu mẫu số,Báo cáo (rows_flagged = số review thiếu nhãn),635,0,
+label_coverage,check,reviews,2026-06-23,review trong mẫu LLM chưa có nhãn LLM,K7 thiếu mẫu số,Báo cáo (rows_flagged = số review thiếu nhãn),635,0,
+label_coverage,check,reviews,2026-09-19,review trong mẫu LLM chưa có nhãn LLM,K7 thiếu mẫu số,Báo cáo (rows_flagged = số review thiếu nhãn),625,0,
+kpi_excluded_share,check,kpi,2025-09-21,n_excluded / (n_used + n_excluded) của KPI vượt ngưỡng (đề xuất 20%),"Quá nhiều dòng bị loại, KPI kém tin cậy","Báo cáo, ghi chú trên KPI",635,9,trong ngưỡng 20%
+kpi_excluded_share,check,kpi,2026-03-26,n_excluded / (n_used + n_excluded) của KPI vượt ngưỡng (đề xuất 20%),"Quá nhiều dòng bị loại, KPI kém tin cậy","Báo cáo, ghi chú trên KPI",635,9,trong ngưỡng 20%
+kpi_excluded_share,check,kpi,2026-06-23,n_excluded / (n_used + n_excluded) của KPI vượt ngưỡng (đề xuất 20%),"Quá nhiều dòng bị loại, KPI kém tin cậy","Báo cáo, ghi chú trên KPI",635,9,trong ngưỡng 20%
+kpi_excluded_share,check,kpi,2026-09-19,n_excluded / (n_used + n_excluded) của KPI vượt ngưỡng (đề xuất 20%),"Quá nhiều dòng bị loại, KPI kém tin cậy","Báo cáo, ghi chú trên KPI",625,9,trong ngưỡng 20%

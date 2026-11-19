@@ -158,7 +158,7 @@ def append_cache(path, rec):
 
 
 # ---------------- chạy ----------------
-def run_labeling(df, cfg):
+def run_labeling(df, cfg, skip_llm=False):
     """df: cột id, comment_clean (đã bỏ trùng id). Trả về DataFrame nhãn."""
     k7 = cfg["kpi"]["k7"]
     lc = k7["llm"]
@@ -167,11 +167,16 @@ def run_labeling(df, cfg):
     cache_path = Path(lc["cache_path"])
     cache_path.parent.mkdir(parents=True, exist_ok=True)
     cache = load_cache(cache_path)
-    call = make_call(lc)
+    call = None
     stats = {"requests": 0, "reviews": 0, "failed": 0}
     texts = dict(zip(df["id"].astype(str), df["comment_clean"].fillna("")))
 
     def process(ids):
+        nonlocal call
+        if not ids:
+            return True
+        if call is None:
+            call = make_call(lc)
         bs, maxreq = lc["batch_size"], lc.get("max_requests_per_run", 10**9)
         for i in range(0, len(ids), bs):
             if stats["requests"] >= maxreq:
@@ -208,8 +213,9 @@ def run_labeling(df, cfg):
         return True
 
     ids = list(texts)
-    if process([x for x in ids if x not in cache]):                       # lần 1
-        process([x for x in ids if x in cache and not cache[x]["ok"] and cache[x]["attempt"] < 2])   # chạy lại 1 lần
+    if not skip_llm:
+        if process([x for x in ids if x not in cache]):                       # lần 1
+            process([x for x in ids if x in cache and not cache[x]["ok"] and cache[x]["attempt"] < 2])   # chạy lại 1 lần
 
     if stats["requests"]:
         log = lc.get("usage_log")

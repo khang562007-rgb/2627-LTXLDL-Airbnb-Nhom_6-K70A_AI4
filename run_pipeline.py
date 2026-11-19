@@ -59,8 +59,8 @@ def main():
     t_start = time.perf_counter()
 
     if "prep" in steps:
-        run_step("Filter raw data to interim", [py, "src/filter_all.py"], args.dry_run)
-        run_step("Check filtered row counts", [py, "src/check_counts.py"], args.dry_run)
+        run_step("Filter raw data to interim", [py, "src/filter_all.py", "--config", args.config], args.dry_run)
+        run_step("Check filtered row counts", [py, "src/check_counts.py", "--config", args.config], args.dry_run)
 
     if "qa" in steps:
         for label, script in [
@@ -70,7 +70,7 @@ def main():
             ("QA reviews", "src/flag_reviews.py"),
         ]:
             run_step(label, [py, script, "--config", args.config], args.dry_run)
-        run_step("Audit QA flags", [py, "run_audits.py"], args.dry_run)
+        run_step("Audit QA flags", [py, "run_audits.py", "--config", args.config], args.dry_run)
 
     if "kpi" in steps:
         for label, script in [
@@ -93,7 +93,7 @@ def main():
             args.dry_run,
         )
         if not args.skip_llm:
-            run_step("K07 community complaint (LLM)", [py, "src/kpi_k7_evidence_review.py", args.config, valid_csv, proc_dir], args.dry_run)
+            run_step("K07 community complaint (LLM)", [py, "src/kpi_k7_community_complaint.py", args.config, valid_csv, proc_dir], args.dry_run)
             run_step(
                 "K08 data reliability (pass 2)",
                 [py, "src/kpi_k8_data_reliability.py", args.config, proc_dir, labels_path, k07_csv],

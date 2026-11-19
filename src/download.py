@@ -1,3 +1,6 @@
+import argparse
+import csv
+import gzip
 from pathlib import Path
 
 import requests
@@ -5,48 +8,82 @@ import yaml
 
 
 ROOT = Path(__file__).resolve().parent.parent
-CONFIG_PATH = ROOT / "configs" / "porto.yaml"
-
-with CONFIG_PATH.open(encoding="utf-8") as config_file:
-    CONFIG = yaml.safe_load(config_file)
-
-RAW = ROOT / CONFIG["paths"]["raw_root"]
-SNAPSHOTS = CONFIG["snapshots"]
-BASE = CONFIG["download"]["base_url"].rstrip("/")
-FILES = CONFIG["download"]["files"]
-CHUNK_SIZE = CONFIG["download"]["stream_chunk_size"]
-TIMEOUT = CONFIG["download"]["timeout_seconds"]
+REQUIRED_KEY_COLS = {
+    "listings.csv.gz": {"id"},
+    "calendar.csv.gz": {"listing_id", "date"},
+    "reviews.csv.gz": {"id", "listing_id"},
+}
 
 
-for snap in SNAPSHOTS:
-    folder = RAW / snap
-    folder.mkdir(parents=True, exist_ok=True)
-    for name in FILES:
-        path = folder / name
-        if path.exists():
-            print("đã có, bỏ qua:", path.relative_to(ROOT))
-            continue
+def verify_key_columns(path: Path, name: str) -> None:
+    """Kiểm tra tệp tồn tại, khác rỗng và có đủ các cột khóa bắt buộc."""
+    if not path.exists() or path.stat().st_size == 0:
+        raise RuntimeError(f"Tệp không tồn tại hoặc rỗng: {path}")
+    required = REQUIRED_KEY_COLS.get(name, set())
+    if not required:
+        return
+    opener = gzip.open if path.suffix == ".gz" else open
+    with opener(path, "rt", encoding="utf-8", errors="replace", newline="") as fh:
+        header = next(csv.reader(fh), [])
+    cols = {c.strip().lstrip("\ufeff") for c in header}
+    missing = required - cols
+    if missing:
+        raise ValueError(f"Tệp {path.relative_to(ROOT)} thiếu cột khóa bắt buộc: {sorted(missing)}")
 
-        # Write to a temporary file and rename only after the download completes.
-        tmp = path.with_name(name + ".part")
-        try:
-            with requests.get(
-                f"{BASE}/{snap}/data/{name}",
-                stream=True,
-                timeout=TIMEOUT,
-            ) as response:
-                response.raise_for_status()
-                with tmp.open("wb") as output_file:
-                    for chunk in response.iter_content(chunk_size=CHUNK_SIZE):
-                        if chunk:
-                            output_file.write(chunk)
-            tmp.replace(path)
-        except Exception:
-            tmp.unlink(missing_ok=True)
-            raise
 
-        print(
-            "đã tải:",
-            path.relative_to(ROOT),
-            f"({path.stat().st_size / 1e6:.1f} MB)",
-        )
+def main() -> None:
+    ap = argparse.ArgumentParser(description="Tải dữ liệu Inside Airbnb theo tệp cấu hình YAML")
+    ap.add_argument("--config", default="configs/porto.yaml", help="Đường dẫn file cấu hình YAML")
+    args = ap.parse_args()
+
+    config_path = Path(args.config)
+    if not config_path.is_absolute():
+        config_path = ROOT / config_path
+    with config_path.open(encoding="utf-8") as config_file:
+        config = yaml.safe_load(config_file)
+
+    raw_dir = ROOT / config["paths"]["raw_root"]
+    snapshots = config["snapshots"]
+    base_url = config["download"]["base_url"].rstrip("/")
+    files = config["download"]["files"]
+    chunk_size = config["download"]["stream_chunk_size"]
+    timeout = config["download"]["timeout_seconds"]
+
+    for snap in snapshots:
+        folder = raw_dir / str(snap)
+        folder.mkdir(parents=True, exist_ok=True)
+        for name in files:
+            path = folder / name
+            if path.exists():
+                verify_key_columns(path, name)
+                print("đã có & hợp lệ, bỏ qua:", path.relative_to(ROOT))
+                continue
+
+            # Write to a temporary file and rename only after the download completes.
+            tmp = path.with_name(name + ".part")
+            try:
+                with requests.get(
+                    f"{base_url}/{snap}/data/{name}",
+                    stream=True,
+                    timeout=timeout,
+                ) as response:
+                    response.raise_for_status()
+                    with tmp.open("wb") as output_file:
+                        for chunk in response.iter_content(chunk_size=chunk_size):
+                            if chunk:
+                                output_file.write(chunk)
+                tmp.replace(path)
+                verify_key_columns(path, name)
+            except Exception:
+                tmp.unlink(missing_ok=True)
+                raise
+
+            print(
+                "đã tải & kiểm tra cột khóa:",
+                path.relative_to(ROOT),
+                f"({path.stat().st_size / 1e6:.1f} MB)",
+            )
+
+
+if __name__ == "__main__":
+    main()
