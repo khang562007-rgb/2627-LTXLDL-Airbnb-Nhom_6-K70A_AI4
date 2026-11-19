@@ -2,6 +2,8 @@
 Mẫu LLM: mỗi listing 1 review ngẫu nhiên theo seed (từ reviews_valid.csv).
 python src/k07.py configs/porto.yaml data/processed/reviews_valid.csv data/processed
 python src/k07.py configs/porto.yaml data/processed/reviews_valid.csv data/processed --handlabel   (chỉ làm mẫu gán tay)
+python src/k07.py configs/porto.yaml data/processed/reviews_valid.csv data/processed --skip-llm    (chỉ dùng cache, không gọi LLM)
+python src/k07.py configs/porto.yaml data/processed/reviews_valid.csv data/processed --skip-llm    (không gọi LLM, chỉ dùng cache)
 Nhãn LLM lưu cache; chạy lại thì chỉ gọi LLM cho review chưa có nhãn.
 """
 import sys
@@ -27,9 +29,11 @@ def evidence_ok(ev, comment):
     return bool(parts) and all(norm(p) in norm(comment) for p in parts)
 
 
-def main(config_path, valid_path, out_dir, handlabel=False):
+def main(config_path, valid_path, out_dir, handlabel=False, skip_llm=False):
     cfg = yaml.safe_load(open(config_path, encoding="utf-8"))
     kcfg = cfg["kpi"]
+    if skip_llm:                                  # chỉ dùng nhãn đã có trong cache, không gọi API
+        kcfg["k7"]["llm"]["skip_llm"] = True
     area_col, out_area = kcfg["area_col"], kcfg["output_area_col"]
     community = set(kcfg["k7"]["aspects"]["community"])
     min_n, out_dir = kcfg["min_cell_n"], Path(out_dir)
@@ -47,9 +51,10 @@ def main(config_path, valid_path, out_dir, handlabel=False):
         h = kcfg["k7"]["handlabel"]
         handlabel_sample(uniq, area_col, h["n"], cfg.get("seed", 42), h["path"])
         return
-    labels = run_labeling(uniq, cfg)          # gọi LLM (có cache) rồi trả bảng nhãn
+    skip_llm = skip_llm or bool(kcfg["k7"]["llm"].get("skip", False))
+    labels = run_labeling(uniq, cfg, skip_llm=skip_llm)   # có cache thì chỉ gọi LLM cho review chưa có nhãn
     if labels.empty:
-        raise SystemExit("Chưa có nhãn LLM nào (xem lỗi API ở trên). Sửa rồi chạy lại, cache vẫn giữ.")
+        raise SystemExit("Chưa có nhãn LLM nào (cache rỗng hoặc lỗi API). Chạy lại không có --skip-llm khi đã có key.")
 
     labels = labels.assign(has_label=True)
     df = (valid.merge(areas, on="listing_id", how="left")
@@ -108,4 +113,4 @@ def main(config_path, valid_path, out_dir, handlabel=False):
 
 if __name__ == "__main__":
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
-    main(*args, handlabel="--handlabel" in sys.argv)
+    main(*args, handlabel="--handlabel" in sys.argv, skip_llm="--skip-llm" in sys.argv)

@@ -1,9 +1,10 @@
 from pathlib import Path
 import requests
+import yaml
 ROOT = Path(__file__).parent.parent          # file nằm trong src/ -> gốc dự án là thư mục cha
 RAW = ROOT / "data" / "raw"
 
-SNAPSHOTS = ["2025-09-21", "2025-12-25", "2026-03-26", "2026-06-23"]
+SNAPSHOTS = ["2025-09-21", "2026-09-19", "2026-03-26", "2026-06-23"]
 BASE = "https://data.insideairbnb.com/portugal/norte/porto"
 FILES = ["listings.csv.gz", "calendar.csv.gz", "reviews.csv.gz"]
 
