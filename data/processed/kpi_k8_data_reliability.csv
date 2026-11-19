@@ -64,11 +64,3 @@ k08,k08_listing_sample_coverage,2025-09-21,ALL,2025-09-21,36.5,%,,1000,365
 k08,k08_listing_sample_coverage,2026-03-26,ALL,2026-03-26,36.5,%,,1000,365
 k08,k08_listing_sample_coverage,2026-06-23,ALL,2026-06-23,36.5,%,,1000,365
 k08,k08_listing_sample_coverage,2026-09-19,ALL,2026-09-19,35.8316,%,,974,349
-k08,k08_label_coverage,2025-09-21,ALL,2025-09-21,0.0,%,,635,0
-k08,k08_label_coverage,2026-03-26,ALL,2026-03-26,0.0,%,,635,0
-k08,k08_label_coverage,2026-06-23,ALL,2026-06-23,0.0,%,,635,0
-k08,k08_label_coverage,2026-09-19,ALL,2026-09-19,0.0,%,,625,0
-k08,k08_kpi_excluded_share,2025-09-21,ALL,2025-09-21,1.4173,%,,635,9
-k08,k08_kpi_excluded_share,2026-03-26,ALL,2026-03-26,1.4173,%,,635,9
-k08,k08_kpi_excluded_share,2026-06-23,ALL,2026-06-23,1.4173,%,,635,9
-k08,k08_kpi_excluded_share,2026-09-19,ALL,2026-09-19,1.44,%,,625,9
