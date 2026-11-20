@@ -1,9 +1,4 @@
 """Cờ chỗ ở, calendar vs listing và cờ giữa các mốc (Bạn 3), chỉ trên dữ liệu nhóm được giao.
-
-QA CHỈ CẮM CỜ, KHÔNG XOÁ DÒNG. Cột `id` là khoá liên kết giữa QA và KPI:
-    file cờ  data/processed/listings_property_flags_<mốc>.csv.gz  gồm  id + các cột cờ (True/False) + bathrooms_clean
-    KPI đọc file này, ghép với listings theo `id` rồi tự quyết định bỏ cờ nào (cấu hình ở configs/porto.yaml, mục kpi.skip_flags).
-
 Cần có sẵn trong data/interim/ (do bước lọc tạo ra), hoặc truyền thư mục đầu vào bằng --interim:
     listings_<mốc>.csv(.gz)   và   calendar_<mốc>.csv(.gz)
 Chạy từ gốc repo:  python src/flag_property_cross.py [--config configs/porto.yaml] [--interim data/interim]
@@ -14,23 +9,22 @@ Kết quả:
 import argparse
 import json
 import re
+import sys
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from src.audit_flags import audit_table, check_collisions, sample_flagged
 import numpy as np
 import pandas as pd
 import yaml
 
-ROOT = Path(__file__).resolve().parent.parent
-ID = "id"  # khoá của bảng listings: mọi cờ và mọi KPI nối với nhau qua cột này
+ID = "id"  # khoá của bảng listings
 
 # tên: (loại, bảng, điều kiện, lý do, hành động)  -- cùng dạng với RULES của qa.py (reviews)
 RULES = {
-    "key_unique": ("check", "listings", "id không rỗng và duy nhất trong mỗi mốc",
-                   "Khoá liên kết giữa QA và KPI",
-                   "Báo cáo (rows_flagged = số id rỗng hoặc trùng, 0 là đạt)"),
-    "id_set_consistent": ("check", "listings", "id của mốc trước còn có ở mốc sau",
-                          "Listing biến mất giữa các mốc (đầu vào của K4)",
-                          "Báo cáo (rows_flagged = số id biến mất, note = số id mới)"),
     "room_type_category": ("flag", "listings", "room_type ngoài danh mục room_types (hoặc thiếu)",
                            "Danh mục lạ", "Gắn cờ"),
     "property_type_rare": ("flag", "listings", "property_type chiếm dưới property_type_min_share của mốc",
@@ -219,11 +213,6 @@ def run(tables, cfg):
     listings, calendar = tables["listings"], tables.get("calendar", {})
 
     for snap, df in listings.items():
-        # Kiểm tra khoá id TRƯỚC khi gắn cờ: KPI ghép với QA bằng id nên id phải rõ ràng và duy nhất.
-        n_null = int(df[ID].isna().sum())
-        n_dup = int(df[ID].dropna().duplicated().sum())
-        add("key_unique", snap, len(df), n_null + n_dup, f"id rỗng: {n_null}; id trùng: {n_dup}")
-
         for name, func in PER_SNAPSHOT_FLAGS:
             df[name] = func(df, cfg)
             note = ""
@@ -242,13 +231,6 @@ def run(tables, cfg):
         for snap, mask in func(listings, cfg).items():
             listings[snap][name] = mask
             add(name, snap, len(mask), mask.sum())
-
-    # Tập id có ổn định giữa các mốc không: đây chính là đầu vào của K4 (listing mới/biến mất).
-    snaps = list(listings)
-    for a, b in zip(snaps, snaps[1:]):
-        ids_a, ids_b = set(listings[a][ID].dropna()), set(listings[b][ID].dropna())
-        add("id_set_consistent", f"{a}->{b}", len(ids_a), len(ids_a - ids_b),
-            f"mới ở mốc sau: {len(ids_b - ids_a)}")
     return tables
 
 
@@ -268,17 +250,14 @@ def main():
 
     tables = {"listings": {}, "calendar": {}}
     for snap in cfg["snapshots"]:
-        # id đọc dạng chuỗi để không hỏng id dài và để ghép đúng kiểu với KPI
         tables["listings"][snap] = pd.read_csv(find_file(interim, "listings", snap),
-                                               dtype={"id": str}, low_memory=False, encoding="utf-8-sig")
+                                               dtype={"id": str}, low_memory=False)
         # calendar rất lớn, ở đây chỉ cần listing_id
         tables["calendar"][snap] = pd.read_csv(find_file(interim, "calendar", snap),
-                                               usecols=["listing_id"], dtype={"listing_id": str},
-                                               encoding="utf-8-sig")
+                                               usecols=["listing_id"], dtype={"listing_id": str})
     run(tables, cfg)
 
     for snap, df in tables["listings"].items():
-        # cột id luôn đứng đầu: đây là "chìa khoá" để KPI ghép cờ vào đúng listing
         cols = [ID] + [c for c in RULES if c in df.columns] + ["bathrooms_clean"]
         df[cols].to_csv(processed / f"listings_property_flags_{snap}.csv.gz",
                         index=False, encoding="utf-8-sig")

@@ -1,0 +1,65 @@
+snapshot,check,value,note
+2025-09-21,listings_in_snapshot,1000.0,
+2025-09-21,excluded_price_missing_or_nonpositive,40.0,"bị loại khỏi KPI, ghi n_excluded"
+2025-09-21,zero_reviews_l365,135.0,ước lượng 0 đêm: có thể thấp hơn thực tế
+2025-09-21,reviews_ltm_missing,0.0,được coi là 0 review
+2025-09-21,raw_nights_over_365,49.0,vô lý về vật lý trước khi cắt trần
+2025-09-21,cap_nights_value,255.5,trần đang có hiệu lực (min của các trần)
+2025-09-21,listings_capped,139.0,
+2025-09-21,long_stay_listings_used,12.0,Stay Used = minimum_nights
+2025-09-21,price_outlier_kept,58.0,"giữ nguyên trong KPI, xem hàng price_outlier_*"
+2025-09-21,license_missing,7.0,
+2025-09-21,license_exempt,72.0,cần xác nhận ý nghĩa của giá trị này
+2025-09-21,listings_without_area,0.0,
+2025-09-21,calendar_unavailable_days_total,96413.0,gồm cả đêm đã đặt và đêm chủ nhà khóa lịch
+2025-09-21,estimated_nights_total,95428.5,"để so với dòng trên, không ép khớp"
+2025-09-21,est_nights_gt_calendar_unavailable,467.0,mô hình nhiều hơn số ngày unavailable: cửa sổ khác nhau (quá khứ và tương lai)
+2025-09-21,calendar_vs_listing_availability_mismatch,0.0,đối chiếu availability_365 với calendar
+2026-03-26,listings_in_snapshot,1000.0,
+2026-03-26,excluded_price_missing_or_nonpositive,54.0,"bị loại khỏi KPI, ghi n_excluded"
+2026-03-26,zero_reviews_l365,128.0,ước lượng 0 đêm: có thể thấp hơn thực tế
+2026-03-26,reviews_ltm_missing,0.0,được coi là 0 review
+2026-03-26,raw_nights_over_365,54.0,vô lý về vật lý trước khi cắt trần
+2026-03-26,cap_nights_value,255.5,trần đang có hiệu lực (min của các trần)
+2026-03-26,listings_capped,127.0,
+2026-03-26,long_stay_listings_used,10.0,Stay Used = minimum_nights
+2026-03-26,price_outlier_kept,55.0,"giữ nguyên trong KPI, xem hàng price_outlier_*"
+2026-03-26,license_missing,9.0,
+2026-03-26,license_exempt,66.0,cần xác nhận ý nghĩa của giá trị này
+2026-03-26,listings_without_area,0.0,
+2026-03-26,calendar_unavailable_days_total,101408.0,gồm cả đêm đã đặt và đêm chủ nhà khóa lịch
+2026-03-26,estimated_nights_total,95324.5,"để so với dòng trên, không ép khớp"
+2026-03-26,est_nights_gt_calendar_unavailable,435.0,mô hình nhiều hơn số ngày unavailable: cửa sổ khác nhau (quá khứ và tương lai)
+2026-03-26,calendar_vs_listing_availability_mismatch,0.0,đối chiếu availability_365 với calendar
+2026-06-23,listings_in_snapshot,1000.0,
+2026-06-23,excluded_price_missing_or_nonpositive,20.0,"bị loại khỏi KPI, ghi n_excluded"
+2026-06-23,zero_reviews_l365,140.0,ước lượng 0 đêm: có thể thấp hơn thực tế
+2026-06-23,reviews_ltm_missing,0.0,được coi là 0 review
+2026-06-23,raw_nights_over_365,49.0,vô lý về vật lý trước khi cắt trần
+2026-06-23,cap_nights_value,255.5,trần đang có hiệu lực (min của các trần)
+2026-06-23,listings_capped,139.0,
+2026-06-23,long_stay_listings_used,9.0,Stay Used = minimum_nights
+2026-06-23,price_outlier_kept,53.0,"giữ nguyên trong KPI, xem hàng price_outlier_*"
+2026-06-23,license_missing,8.0,
+2026-06-23,license_exempt,64.0,cần xác nhận ý nghĩa của giá trị này
+2026-06-23,listings_without_area,0.0,
+2026-06-23,calendar_unavailable_days_total,104646.0,gồm cả đêm đã đặt và đêm chủ nhà khóa lịch
+2026-06-23,estimated_nights_total,98066.5,"để so với dòng trên, không ép khớp"
+2026-06-23,est_nights_gt_calendar_unavailable,449.0,mô hình nhiều hơn số ngày unavailable: cửa sổ khác nhau (quá khứ và tương lai)
+2026-06-23,calendar_vs_listing_availability_mismatch,0.0,đối chiếu availability_365 với calendar
+2026-09-19,listings_in_snapshot,974.0,
+2026-09-19,excluded_price_missing_or_nonpositive,35.0,"bị loại khỏi KPI, ghi n_excluded"
+2026-09-19,zero_reviews_l365,134.0,ước lượng 0 đêm: có thể thấp hơn thực tế
+2026-09-19,reviews_ltm_missing,0.0,được coi là 0 review
+2026-09-19,raw_nights_over_365,49.0,vô lý về vật lý trước khi cắt trần
+2026-09-19,cap_nights_value,255.5,trần đang có hiệu lực (min của các trần)
+2026-09-19,listings_capped,137.0,
+2026-09-19,long_stay_listings_used,6.0,Stay Used = minimum_nights
+2026-09-19,price_outlier_kept,51.0,"giữ nguyên trong KPI, xem hàng price_outlier_*"
+2026-09-19,license_missing,42.0,
+2026-09-19,license_exempt,53.0,cần xác nhận ý nghĩa của giá trị này
+2026-09-19,listings_without_area,0.0,
+2026-09-19,calendar_unavailable_days_total,94826.0,gồm cả đêm đã đặt và đêm chủ nhà khóa lịch
+2026-09-19,estimated_nights_total,94383.5,"để so với dòng trên, không ép khớp"
+2026-09-19,est_nights_gt_calendar_unavailable,460.0,mô hình nhiều hơn số ngày unavailable: cửa sổ khác nhau (quá khứ và tương lai)
+2026-09-19,calendar_vs_listing_availability_mismatch,0.0,đối chiếu availability_365 với calendar

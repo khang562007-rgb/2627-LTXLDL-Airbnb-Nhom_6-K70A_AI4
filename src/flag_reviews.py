@@ -5,12 +5,16 @@ Chạy từ gốc repo:  python src/qa.py [--config configs/porto.yaml]
 """
 import argparse
 import html
+import sys
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from src.audit_flags import audit_table, check_collisions, sample_flagged
 import pandas as pd
 import yaml
-
-ROOT = Path(__file__).resolve().parent.parent
 TAG = r"<[a-zA-Z/][^>]*>"
 BR = r"<br\s*/?>"
 LS_COLS = {"id", "last_scraped", "host_since", "number_of_reviews", "last_review"}
