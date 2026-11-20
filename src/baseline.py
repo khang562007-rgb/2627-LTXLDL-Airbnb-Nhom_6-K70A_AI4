@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 """baseline.py - phương pháp đối chứng KHÔNG dùng LLM cho phân tích review.
 
-Đầu vào : CSV, CSV.GZ hoặc TSV có hai cột `review_id`, `comment_clean`.
+Đầu vào : CSV, CSV.GZ hoặc TSV có ID (`review_id` hoặc `id`) và nội dung
+          (`comment_clean` được ưu tiên, dùng `comments` khi thiếu cột sạch).
 Đầu ra  : CSV cùng "hình dạng" với đầu ra LLM:
           review_id, language, sentiment, aspects_positive, aspects_negative
           + cột phụ: status, lang_confidence, pos_score, neg_score (phục vụ QA/phân tích lỗi).
@@ -59,6 +60,7 @@ DEFAULTS = {
 
 OUT_COLUMNS = ["review_id", "language", "sentiment", "aspects_positive", "aspects_negative",
                "status", "lang_confidence", "pos_score", "neg_score"]
+TEXT_COLUMNS = ("comment_clean", "comments")
 
 AUTO_PATTERNS = [
     r"this is an automated posting", r"automated posting",
@@ -405,7 +407,7 @@ def detect_delimiter(fin):
     fin.seek(0)
     for delimiter in (",", "\t", ";"):
         fields = next(csv.reader([header], delimiter=delimiter), [])
-        if "comment_clean" in fields and ("review_id" in fields or "id" in fields):
+        if any(col in fields for col in TEXT_COLUMNS) and ("review_id" in fields or "id" in fields):
             return delimiter
     return ","
 
@@ -422,11 +424,13 @@ def run(cfg, input_path=None, output_path=None, limit=None, backend=None):
     with _open(input_path, "r", encoding="utf-8-sig", newline="") as fin:
         delimiter = detect_delimiter(fin)
         rd = csv.DictReader(fin, delimiter=delimiter)
-        if "comment_clean" not in (rd.fieldnames or []):
-            sys.exit(f"Thiếu cột 'comment_clean' trong {input_path} (có: {rd.fieldnames})")
-        id_col = "review_id" if "review_id" in rd.fieldnames else ("id" if "id" in rd.fieldnames else None)
+        fields = rd.fieldnames or []
+        text_col = next((col for col in TEXT_COLUMNS if col in fields), None)
+        if text_col is None:
+            sys.exit(f"Thiếu cột 'comment_clean' hoặc 'comments' trong {input_path} (có: {fields})")
+        id_col = next((col for col in ("review_id", "id") if col in fields), None)
         if id_col is None:
-            sys.exit("Thiếu cột 'review_id'")
+            sys.exit("Thiếu cột 'review_id' hoặc 'id'")
 
         target.parent.mkdir(parents=True, exist_ok=True)
         try:
@@ -436,7 +440,7 @@ def run(cfg, input_path=None, output_path=None, limit=None, backend=None):
                 for i, r in enumerate(rd):
                     if limit is not None and i >= limit:
                         break
-                    row = process_review(r[id_col], r["comment_clean"], ctx)
+                    row = process_review(r[id_col], r[text_col], ctx)
                     wr.writerow(row)
                     stats["status:" + row["status"]] += 1
                     if row["sentiment"]:

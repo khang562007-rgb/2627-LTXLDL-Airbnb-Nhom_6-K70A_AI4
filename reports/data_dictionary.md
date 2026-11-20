@@ -7,7 +7,7 @@ Mã nhóm `DSE2049-C04-G06-porto`. Bốn mốc trong cấu hình là 21/09/2025,
 | Bảng trong `data/interim/` | Một dòng biểu diễn | Khóa dự kiến trong từng mốc | Phạm vi |
 |---|---|---|---|
 | `listings_<mốc>.csv.gz` | Một chỗ ở được quan sát | `id` | Các ID listing được giao có mặt trong dữ liệu thô. Ghép `analysis_area` từ bảng phân khu của nhóm. |
-| `calendar_<mốc>.csv.gz` | Trạng thái lịch của một chỗ ở trong một ngày | `listing_id`, `date` | Lọc theo ID listing được giao, giữ ba cột. |
+| `calendar_<mốc>.csv.gz` | Trạng thái lịch của một chỗ ở trong một ngày | `listing_id`, `date` | Lọc theo ID listing được giao, giữ năm cột ở bảng dưới. |
 | `reviews_<mốc>.csv.gz` | Một lượt đánh giá của khách | `id` | Lọc theo danh sách ID review được giao. Một review có thể xuất hiện lại ở nhiều mốc. |
 
 Khi nối bảng, dùng cùng mốc và nối `calendar.listing_id` hoặc `reviews.listing_id` với `listings.id`. Trong bảng giao mẫu, `review_id` tương ứng với `reviews.id`. Dữ liệu thô toàn Porto dùng để ước lượng chi phí nằm ở `../<mốc>/reviews.csv.gz` tính từ gốc dự án. [Bước lọc dữ liệu](../src/filter_all.py)
@@ -46,13 +46,14 @@ Tệp đã lọc có 80 cột ở mốc đầu và 91 cột ở ba mốc sau. B�
 | calendar | `listing_id` | Chuỗi ID | Mã | Chỗ ở có ngày lịch này. |
 | calendar | `date` | Ngày | YYYY-MM-DD | Ngày lưu trú được quan sát trên lịch. |
 | calendar | `available` | Cờ dạng ký tự | `t` / `f` | `t` là mở để đặt, `f` là đóng. Ngày đóng có thể do chủ chặn hoặc do đã được đặt. |
+| calendar | `minimum_nights`, `maximum_nights` | Số nguyên, có thể thiếu | Đêm/lượt ở | Số đêm tối thiểu và tối đa áp dụng cho listing ở ngày lịch đó. |
 | reviews | `id`, `listing_id`, `reviewer_id` | Chuỗi ID | Mã | Lần lượt định danh review, chỗ ở được đánh giá và người viết. |
 | reviews | `date` | Ngày | YYYY-MM-DD | Ngày đăng review. |
 | reviews | `reviewer_name`, `comments` | Chuỗi, có thể thiếu | Văn bản | Tên hiển thị của người viết và nội dung review gốc. |
 
 ## Tệp cờ QA trong `data/processed/`
 
-Các cột cờ có kiểu logic, nhận `True` khi thỏa điều kiện gắn cờ. QA giữ các dòng gốc. Ghép hai tệp cờ listing bằng `id` trong cùng mốc. Tệp review đã gắn cờ giữ sáu cột nguồn nêu trên. [Quy tắc, ngưỡng và hành động theo từng cờ](qa_kpi_methods.md)
+Các cột cờ có kiểu logic, nhận `True` khi thỏa điều kiện gắn cờ. QA giữ các dòng gốc. Ghép từng tệp cờ listing bằng `id` trong cùng mốc. Tệp review đã gắn cờ giữ sáu cột nguồn nêu trên. [Quy tắc QA review](../src/flag_reviews.py) · [QA thuộc tính](../src/flag_property_cross.py) · [QA chủ nhà và vị trí](../src/flag_host_locations.py) · [QA giá và lịch](../src/flag_price_calendar.py)
 
 | Tệp | Cột | Kiểu và đơn vị | Ý nghĩa |
 |---|---|---|---|
@@ -71,7 +72,7 @@ Các cột cờ có kiểu logic, nhận `True` khi thỏa điều kiện gắn 
 
 ### Báo cáo QA tổng hợp
 
-Mỗi dòng trong `reports/qa_report_property.csv` và `reports/qa_report_reviews.csv` mô tả một quy tắc ở một mốc hoặc một cặp mốc.
+Mỗi dòng trong bốn báo cáo `qa_report_property.csv`, `qa_report_reviews.csv`, `qa_report_host_locations.csv` và `qa_report_price_calendar.csv` thuộc `reports/` mô tả một quy tắc ở một mốc hoặc một cặp mốc.
 
 | Cột | Kiểu | Đơn vị hoặc miền giá trị | Ý nghĩa |
 |---|---|---|---|
@@ -82,16 +83,29 @@ Mỗi dòng trong `reports/qa_report_property.csv` và `reports/qa_report_review
 | `rows_total`, `rows_flagged` | Số nguyên | Dòng hoặc ID, tùy quy tắc | Quy mô kiểm tra và số trường hợp thỏa điều kiện. Với so sánh tập ID, mẫu số là số ID ở mốc trước. |
 | `note` | Chuỗi, có thể trống | Văn bản | Chi tiết đối chiếu, ví dụ số ID mới, số dòng đủ điều kiện, số giá trị còn thiếu. |
 
-## Các tệp `kpi_*.csv` đã xuất
+## Kết quả KPI trong `data/processed/`
 
-Hai tệp cùng nằm trong `data/processed/`. Một dòng ứng với một cặp `(snapshot, khu)`. `ALL` gộp các khu trong **mẫu của nhóm**. Giá trị phần trăm được làm tròn đến hai chữ số thập phân, mẫu số bằng 0 cho ô trống.
+Một dòng ghi một phép đo (`kpi_id`, `kpi_name`) tại mốc `snapshot` và khu `neighbourhood_cleansed`. Trong kết quả theo khu của nhóm, cột này chứa mã phân tích như `A01`. Dòng `ALL`, khi có, tổng hợp trên mẫu của nhóm. Đọc `value` cùng `unit` và `currency`. Với K5–K8, dùng thêm `period` và `kpi_name` khi lọc dữ liệu vì cùng khu và mốc có thể có nhiều phép đo.
 
-| Tệp | Cột | Kiểu và đơn vị | Ý nghĩa |
-|---|---|---|---|
-| Cả K3 và K4 | `snapshot`, `khu` | Ngày ISO, chuỗi phân loại | Với K4, ngày là mốc sau của cặp mốc liền nhau trong cấu hình. Khu thiếu mang nhãn `(thiếu)`. |
-| `kpi_k3_entire_home_share.csv` | `n_entire`, `n_total` | Số nguyên, listing | Số nguyên căn và tổng số listing trước khi xét cờ. |
-| K3 | `value_pct` | Số thực, % | Tỷ lệ nguyên căn trên toàn nhóm dòng. |
-| K3 | `n_skipped`, `n_total_ok`, `n_entire_ok` | Số nguyên, listing | Số dòng bỏ do cờ đã chọn, tổng dòng giữ và số nguyên căn trong phần giữ. |
-| K3 | `value_pct_ok` | Số thực, % | Tỷ lệ nguyên căn sau khi áp dụng `kpi.skip_flags.k3`. |
-| `kpi_k4_supply_change.csv` | `n_new`, `n_gone`, `n_prev` | Số nguyên, listing | Số ID xuất hiện mới, số ID biến mất và số ID ở mốc trước. |
-| K4 | `value_pct` | Số thực có dấu, % | Thay đổi nguồn cung ròng tính trên số listing ở mốc trước. |
+| Tệp | Ý nghĩa của `value` | Cách đọc các cột liên quan |
+|---|---|---|
+| `kpi_k1_area_share.csv` | Tỷ trọng listing của khu trong mẫu tại mốc (%). | 100 × `n_listings_area` / `n_listings_city`. |
+| `kpi_k2_multi_host_share.csv` | Tỷ lệ listing trong khu thuộc chủ đạt ngưỡng nhiều listing (%). Cấu hình Porto đếm listing của mỗi chủ trên toàn mẫu của mốc. | 100 × `n_multi_host_listings` / `n_listings`. |
+| `kpi_k3_entire_home_share.csv` | Tỷ lệ nguyên căn sau khi áp dụng cờ QA (%). | 100 × `n_entire_after_qa` / `n_total_after_qa`. Các cột `value_before_qa`, `n_entire_before_qa` và `n_total_before_qa` cho biết tỷ lệ, tử số và mẫu số trước lọc. |
+| `kpi_k4_supply_change.csv` | Biến động nguồn cung ròng giữa hai mốc (%). | 100 × (`n_new` − `n_gone`) / `n_prev`. `comparison_period` ghi cặp mốc, `snapshot` là mốc sau. |
+| `kpi_k05_revenue_tax.csv` | Ước tính số đêm đã đặt, công suất, doanh thu, thuế du lịch và ảnh hưởng của giá ngoại lệ. | Chọn `kpi_name` rồi đọc `unit` tương ứng (đêm/năm, %, EUR/năm hoặc số listing). |
+| `kpi_k06_commercial_share.csv` | Tỷ lệ hoặc số listing thuộc nhóm thương mại/trung hạn theo ngưỡng ngày mở lịch hoặc thời gian lưu trú tối thiểu. | `commercial_share` tính bằng %, `commercial_share_margin95` là biên sai số theo điểm phần trăm. |
+| `kpi_k07_community_complaint.csv` | Tỷ lệ review đủ điều kiện có phàn nàn về cộng đồng (%). Review mang nhãn phàn nàn cần có dẫn chứng hợp lệ. | `n_used` là mẫu số, `n_excluded` là số bị loại. Ô thiếu cỡ mẫu tối thiểu để trống `value`. |
+| `kpi_k8_data_reliability.csv` | Tỷ lệ vi phạm hoặc thiếu độ phủ (%) theo quy tắc ghi ở `kpi_name`. | `n_used` là số trường hợp kiểm tra, `n_excluded` đếm trường hợp bị gắn cờ theo phép đo. Tệp `kpi_k08_data_reliability.csv` có nội dung giống tệp này ở phiên bản hiện tại. |
+
+Cả tám nhóm có `n_used` và `n_excluded` theo phạm vi từng phép đo. K1–K4 xuất thêm `numerator` (tử số) và `denominator` (mẫu số). Với K1/K2, `share_delta_pp` là chênh lệch tỷ trọng so với mốc trước, `rising_streak` đếm số kỳ tăng liên tiếp, còn `flag_rising_share` (K1) và `flag_rising` (K2) đánh dấu xu hướng tăng theo cấu hình.
+
+Hai tệp `kpi_k07_report.csv` và `kpi_k08_report.csv` ghi kết quả kiểm tra theo quy tắc. Tệp `k07_evidence_review.csv` lưu các trường hợp cần kiểm tra dẫn chứng với các cột `id`, `listing_id`, `comment_clean`, `evidence`.
+
+## Văn bản đầu vào của baseline
+
+`comments` là nguyên văn review trong dữ liệu nguồn và tệp mẫu. Bước QA giải mã HTML, bỏ thẻ và chuẩn hóa khoảng trắng để tạo `comment_clean`. Pipeline truyền `reviews_valid.csv` có cột `id` và `comment_clean` cho baseline. Tệp mẫu `data/samples/reviews_sample.csv` dùng dấu tab và có hai cột `review_id`, `comments`.
+
+Baseline chọn cột một lần theo tiêu đề tệp. Khi có `comment_clean`, baseline dùng giá trị ở cột này, kể cả ô rỗng (trạng thái `excluded_empty`). Khi chỉ có `comments`, văn bản gốc đi qua cùng hàm xử lý của baseline. [Bước QA review](../src/flag_reviews.py) · [Baseline](../src/baseline.py)
+
+Hai tài liệu tại commit `e152bc1` ghi lại phương pháp và giả định ở thời điểm đó. [Bảng phương pháp QA/KPI cũ](https://github.com/khang562007-rgb/2627-LTXLDL-Airbnb-Nhom_6-K70A_AI4/blob/e152bc1/reports/qa_kpi_methods.md) · [Ước lượng chi phí LLM cũ](https://github.com/khang562007-rgb/2627-LTXLDL-Airbnb-Nhom_6-K70A_AI4/blob/e152bc1/reports/llm_cost_porto.md)
