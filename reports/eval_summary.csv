@@ -1,0 +1,7 @@
+﻿model,task,n,accuracy,macro_f1,precision,recall,f1
+baseline,language,150,1.0,,,,
+baseline,sentiment,150,0.6133,0.5906,,,
+baseline,community_complaint,150,0.8533,,0.8889,0.5581,0.6857
+llm,language,150,0.9867,,,,
+llm,sentiment,150,0.9933,0.972,,,
+llm,community_complaint,150,0.98,,1.0,0.9302,0.9639

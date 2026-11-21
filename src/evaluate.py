@@ -159,7 +159,7 @@ def eval_against_handlabel(hl, base, llm, out_dir):
     df.loc[mismatch_mask].to_csv(out_dir / "eval_mismatches.csv", index=False, encoding="utf-8-sig")
 
 
-def eval_cross_agreement(base, llm, out_dir):
+def eval_cross_agreement(base, llm, out_dir, mismatch_file="eval_mismatches.csv"):
     if base is None or llm is None:
         print("[SKIP] Thiếu baseline_reviews.csv hoặc k7_labels.csv để đối chiếu chéo.")
         return
@@ -190,7 +190,7 @@ def eval_cross_agreement(base, llm, out_dir):
     res = pd.DataFrame(rows)
     res.to_csv(out_dir / "eval_baseline_vs_llm.csv", index=False, encoding="utf-8-sig")
     m[(m["base_sent"] != m["llm_sent"]) | (m["base_comm"] != m["llm_comm"])].to_csv(
-        out_dir / "eval_mismatches.csv", index=False, encoding="utf-8-sig"
+        out_dir / mismatch_file, index=False, encoding="utf-8-sig"
     )
     print("\n=== Đối chiếu chéo Baseline vs LLM ===")
     print(res.to_string(index=False))
@@ -226,12 +226,13 @@ def main():
         )
         if has_filled:
             eval_against_handlabel(hl, base, llm, out_dir)
+            eval_cross_agreement(base, llm, out_dir, "eval_cross_mismatches.csv")
             return
         print(f"[INFO] File {hl_path} tồn tại nhưng chưa điền nhãn tay (hand_*).")
     else:
         print(
             f"[INFO] Chưa có file nhãn tay {hl_path}. "
-            "Tạo mẫu bằng: python src/kpi_k7_evidence_review.py configs/porto.yaml data/processed/reviews_valid.csv data/processed --handlabel"
+            "Tạo bản mẫu riêng (*_blank.csv) bằng: python src/kpi_k7_evidence_review.py configs/porto.yaml data/processed/reviews_valid.csv data/processed --handlabel"
         )
 
     eval_cross_agreement(base, llm, out_dir)

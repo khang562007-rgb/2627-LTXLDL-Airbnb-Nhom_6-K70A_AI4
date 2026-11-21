@@ -95,12 +95,18 @@ Một dòng ghi một phép đo (`kpi_id`, `kpi_name`) tại mốc `snapshot` v�
 | `kpi_k4_supply_change.csv` | Biến động nguồn cung ròng giữa hai mốc (%). | 100 × (`n_new` − `n_gone`) / `n_prev`. `comparison_period` ghi cặp mốc, `snapshot` là mốc sau. |
 | `kpi_k05_revenue_tax.csv` | Ước tính số đêm đã đặt, công suất, doanh thu, thuế du lịch và ảnh hưởng của giá ngoại lệ. | Chọn `kpi_name` rồi đọc `unit` tương ứng (đêm/năm, %, EUR/năm hoặc số listing). |
 | `kpi_k06_commercial_share.csv` | Tỷ lệ hoặc số listing thuộc nhóm thương mại/trung hạn theo ngưỡng ngày mở lịch hoặc thời gian lưu trú tối thiểu. | `commercial_share` tính bằng %, `commercial_share_margin95` là biên sai số theo điểm phần trăm. |
-| `kpi_k07_community_complaint.csv` | Tỷ lệ review đủ điều kiện có phàn nàn về cộng đồng (%). Review mang nhãn phàn nàn cần có dẫn chứng hợp lệ. | `n_used` là mẫu số, `n_excluded` là số bị loại. Ô thiếu cỡ mẫu tối thiểu để trống `value`. |
+| `kpi_k07_community_complaint.csv` | Tỷ lệ review đủ điều kiện có phàn nàn về cộng đồng (%). Review mang nhãn phàn nàn cần có dẫn chứng hợp lệ. | `n_used` là mẫu số, `n_excluded` là số bị loại. `n_before_qa` và `value_before_qa` dùng các nhãn hợp lệ trước khi lọc dẫn chứng. Ô dưới 30 review đủ điều kiện để trống tỷ lệ tương ứng. |
 | `kpi_k8_data_reliability.csv` | Tỷ lệ vi phạm hoặc thiếu độ phủ (%) theo quy tắc ghi ở `kpi_name`. | `n_used` là số trường hợp kiểm tra, `n_excluded` đếm trường hợp bị gắn cờ theo phép đo. Tệp `kpi_k08_data_reliability.csv` có nội dung giống tệp này ở phiên bản hiện tại. |
 
 Cả tám nhóm có `n_used` và `n_excluded` theo phạm vi từng phép đo. K1–K4 xuất thêm `numerator` (tử số) và `denominator` (mẫu số). Với K1/K2, `share_delta_pp` là chênh lệch tỷ trọng so với mốc trước, `rising_streak` đếm số kỳ tăng liên tiếp, còn `flag_rising_share` (K1) và `flag_rising` (K2) đánh dấu xu hướng tăng theo cấu hình.
 
 Hai tệp `kpi_k07_report.csv` và `kpi_k08_report.csv` ghi kết quả kiểm tra theo quy tắc. Tệp `k07_evidence_review.csv` lưu các trường hợp cần kiểm tra dẫn chứng với các cột `id`, `listing_id`, `comment_clean`, `evidence`.
+
+## Nhãn tay và các bảng báo cáo
+
+- `data/interim/k7_handlabel_sample.csv` có 150 ID review riêng biệt. Các cột `hand_language`, `hand_sentiment` và `hand_community_complaint` ghi nhãn dùng để chấm. Lệnh K7 với `--handlabel` xuất một bản mẫu trống riêng có hậu tố `_blank.csv`.
+- `reports/eval_summary.csv` ghi mô hình, tác vụ, số ca được chấm và các thước đo đối chiếu với nhãn tay. `reports/eval_baseline_vs_llm.csv` đo mức đồng thuận giữa hai phương pháp.
+- `reports/qa_report.csv` gộp các quy tắc và số dòng bị cờ (`section=rule`), biến động số dòng (`rows`) và tác động lên giá trị KPI (`kpi_impact`). Cột `module` cho biết nguồn quy tắc.
 
 ## Văn bản đầu vào của baseline
 

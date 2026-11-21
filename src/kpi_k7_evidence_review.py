@@ -39,6 +39,7 @@ def main(
     valid_path=None,
     out_dir=None,
     handlabel=False,
+    cache_only=False,
 ):
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
@@ -69,9 +70,11 @@ def main(
 
     if handlabel:
         h = kcfg["k7"]["handlabel"]
-        handlabel_sample(uniq, area_col, h["n"], cfg.get("seed", 42), h["path"])
+        path = Path(h["path"])
+        template = path.with_name(path.stem + "_blank" + path.suffix)
+        handlabel_sample(uniq, area_col, h["n"], cfg.get("seed", 42), template)
         return
-    labels = run_labeling(uniq, cfg)          # gọi LLM (có cache) rồi trả bảng nhãn
+    labels = run_labeling(uniq, cfg, skip_llm=cache_only)          # gọi LLM (có cache) rồi trả bảng nhãn
     if labels.empty:
         raise SystemExit("Chưa có nhãn LLM nào (xem lỗi API ở trên). Sửa rồi chạy lại, cache vẫn giữ.")
 
@@ -108,8 +111,18 @@ def main(
     k_all = d[d.ok].groupby("snapshot").is_complaint.sum().rename("k").reset_index()
     allc = allc.merge(k_all, on="snapshot", how="left").assign(**{out_area: "ALL"})
     res = pd.concat([by_area, allc], ignore_index=True).fillna({"k": 0})
+    # trước QA: giữ cả review bị cờ llm_evidence_missing (nhãn LLM hợp lệ nhưng bằng chứng không khớp)
+    pre = d[d.has_label & d.label_valid]
+    keys = ["snapshot", area_col]
+    b_area = pre.groupby(keys).agg(n_before_qa=("is_complaint", "size"), k_before=("is_complaint", "sum")).reset_index()
+    b_all = pre.groupby("snapshot").agg(n_before_qa=("is_complaint", "size"), k_before=("is_complaint", "sum")).reset_index()
+    before = pd.concat([b_area.rename(columns={area_col: out_area}), b_all.assign(**{out_area: "ALL"})],
+                       ignore_index=True)
+    res = res.merge(before, on=["snapshot", out_area], how="left").fillna({"n_before_qa": 0, "k_before": 0})
     res["n_excluded"] = res.n_total - res.n_used
     res["value"] = np.where(res.n_used >= min_n, 100 * res.k / res.n_used.where(res.n_used > 0), np.nan)
+    res["value_before_qa"] = np.where(res.n_before_qa >= min_n,
+                                      100 * res.k_before / res.n_before_qa.where(res.n_before_qa > 0), np.nan)
     res["period"] = res["snapshot"]
 
     cells = res[res[out_area] != "ALL"]
@@ -122,7 +135,7 @@ def main(
     res.insert(0, "kpi_id", K)
     res["unit"], res["currency"] = "%", ""
     out_dir.mkdir(parents=True, exist_ok=True)
-    res[OUT_COLS].to_csv(out_dir / "kpi_k07_community_complaint.csv", index=False, encoding="utf-8")
+    res[OUT_COLS + ["value_before_qa", "n_before_qa"]].to_csv(out_dir / "kpi_k07_community_complaint.csv", index=False, encoding="utf-8")
     rec.save_report(out_dir / "kpi_k07_report.csv")
     show = [c for c in ["id", "listing_id", "comment_clean", "evidence"] if c in df]
     df.loc[df.evidence_missing, show].drop_duplicates("id").to_csv(
@@ -132,4 +145,4 @@ def main(
 
 if __name__ == "__main__":
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
-    main(*args, handlabel="--handlabel" in sys.argv)
+    main(*args, handlabel="--handlabel" in sys.argv, cache_only="--cache-only" in sys.argv)

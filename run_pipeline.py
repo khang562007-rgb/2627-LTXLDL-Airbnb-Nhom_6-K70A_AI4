@@ -42,7 +42,9 @@ def main():
         help="Các giai đoạn cần chạy theo thứ tự",
     )
     ap.add_argument("--with-filter", action="store_true", help="Chạy thêm bước lọc dữ liệu thô (prep) trước qa")
-    ap.add_argument("--skip-llm", action="store_true", help="Bỏ qua bước gắn nhãn LLM / K07")
+    llm_mode = ap.add_mutually_exclusive_group()
+    llm_mode.add_argument("--cache-only", action="store_true", help="Tính K07 và K08 từ cache, không gọi API")
+    llm_mode.add_argument("--skip-llm", action="store_true", help="Bỏ qua bước gắn nhãn LLM / K07")
     ap.add_argument("--dry-run", action="store_true", help="Chỉ in ra các lệnh sẽ chạy mà không thực thi")
     args = ap.parse_args()
 
@@ -59,8 +61,8 @@ def main():
     t_start = time.perf_counter()
 
     if "prep" in steps:
-        run_step("Filter raw data to interim", [py, "src/filter_all.py"], args.dry_run)
-        run_step("Check filtered row counts", [py, "src/check_counts.py"], args.dry_run)
+        run_step("Filter raw data to interim", [py, "src/filter_all.py", "--config", args.config], args.dry_run)
+        run_step("Check filtered row counts", [py, "src/check_counts.py", "--config", args.config], args.dry_run)
 
     if "qa" in steps:
         for label, script in [
@@ -70,7 +72,7 @@ def main():
             ("QA reviews", "src/flag_reviews.py"),
         ]:
             run_step(label, [py, script, "--config", args.config], args.dry_run)
-        run_step("Audit QA flags", [py, "run_audits.py"], args.dry_run)
+        run_step("Audit QA flags", [py, "run_audits.py", "--config", args.config], args.dry_run)
 
     if "kpi" in steps:
         for label, script in [
@@ -93,7 +95,10 @@ def main():
             args.dry_run,
         )
         if not args.skip_llm:
-            run_step("K07 community complaint (LLM)", [py, "src/kpi_k7_evidence_review.py", args.config, valid_csv, proc_dir], args.dry_run)
+            k7_cmd = [py, "src/kpi_k7_evidence_review.py", args.config, valid_csv, proc_dir]
+            if args.cache_only:
+                k7_cmd.append("--cache-only")
+            run_step("K07 community complaint", k7_cmd, args.dry_run)
             run_step(
                 "K08 data reliability (pass 2)",
                 [py, "src/kpi_k8_data_reliability.py", args.config, proc_dir, labels_path, k07_csv],
@@ -102,6 +107,9 @@ def main():
         else:
             print("\n[SKIP] Bỏ qua K07 LLM và K08 pass 2 theo cờ --skip-llm.")
         run_step("Evaluate Baseline & LLM", [py, "src/evaluate.py", "--config", args.config], args.dry_run)
+
+    if any(step in steps for step in ("qa", "kpi", "reviews")):
+        run_step("Build consolidated QA report", [py, "src/qa_report.py", "--config", args.config], args.dry_run)
 
     if "viz" in steps:
         run_step("Generate figures", [py, "src/viz.py", "--config", args.config, "--out", "figures"], args.dry_run)

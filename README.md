@@ -53,7 +53,25 @@ pip install -r requirements.txt
 
 ## 3. Lệnh chạy toàn bộ pipeline
 
-Chạy từ thư mục gốc của repository:
+![Sơ đồ từ dữ liệu Inside Airbnb Porto đến kết quả](figures/roadmap_porto.svg)
+
+[Xem các thay đổi theo nhánh, lý do tích hợp và kết quả chạy thử](reports/tich_hop_cac_nhanh.md)
+
+Để tái lập từ dữ liệu đã lọc và cache K7 có trong Git, chạy:
+
+```bash
+python run_pipeline.py --config configs/porto.yaml --cache-only
+```
+
+Để bắt đầu từ raw, chạy hai lệnh dưới đây. Nếu đã có 12 tệp gốc, đặt chúng trong `data/raw/<YYYY-MM-DD>/`. Bước tải kiểm tra tiêu đề tệp có sẵn.
+
+```bash
+python src/download.py --config configs/porto.yaml
+python run_pipeline.py --config configs/porto.yaml --with-filter --cache-only
+```
+
+
+Để cho phép bổ sung nhãn qua API khi còn thiếu cache, chạy từ thư mục gốc:
 
 ```bash
 python run_pipeline.py --config configs/porto.yaml
@@ -69,7 +87,12 @@ Các tùy chọn hỗ trợ:
 
 ## 4. Các tệp đầu ra cần kiểm tra sau khi chạy
 
-### Báo cáo QA (`reports/`)
+### Báo cáo QA và đánh giá (`reports/`)
+
+- [QA tổng hợp](reports/qa_report.csv)
+- [Điểm trên 150 nhãn tay](reports/eval_summary.csv) · [Các ca LLM lệch nhãn tay](reports/eval_mismatches.csv)
+- [Đồng thuận giữa baseline và LLM](reports/eval_baseline_vs_llm.csv) · [Các ca hai phương pháp bất đồng](reports/eval_cross_mismatches.csv)
+
 - [`reports/qa_report_host_locations.csv`](reports/qa_report_host_locations.csv)
 - [`reports/qa_report_price_calendar.csv`](reports/qa_report_price_calendar.csv)
 - [`reports/qa_report_property.csv`](reports/qa_report_property.csv)

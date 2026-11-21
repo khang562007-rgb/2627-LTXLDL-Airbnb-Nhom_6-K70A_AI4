@@ -282,7 +282,7 @@ def fig_k7_llm_community(proc_dir, interim_dir, snaps, out_dir):
 
 
 def fig_k8_reliability(proc_dir, snaps, out_dir):
-    k8 = load_csv(proc_dir / "kpi_k08_data_reliability.csv")
+    k8 = load_csv(proc_dir / "kpi_k8_data_reliability.csv")
     if k8 is None or k8.empty:
         return
     keep = [

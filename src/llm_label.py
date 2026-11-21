@@ -158,7 +158,7 @@ def append_cache(path, rec):
 
 
 # ---------------- chạy ----------------
-def run_labeling(df, cfg):
+def run_labeling(df, cfg, skip_llm=False):
     """df: cột id, comment_clean (đã bỏ trùng id). Trả về DataFrame nhãn."""
     k7 = cfg["kpi"]["k7"]
     lc = k7["llm"]
@@ -167,11 +167,16 @@ def run_labeling(df, cfg):
     cache_path = Path(lc["cache_path"])
     cache_path.parent.mkdir(parents=True, exist_ok=True)
     cache = load_cache(cache_path)
-    call = make_call(lc)
+    call = None
     stats = {"requests": 0, "reviews": 0, "failed": 0}
     texts = dict(zip(df["id"].astype(str), df["comment_clean"].fillna("")))
 
     def process(ids):
+        nonlocal call
+        if not ids:
+            return True
+        if call is None:
+            call = make_call(lc)
         bs, maxreq = lc["batch_size"], lc.get("max_requests_per_run", 10**9)
         for i in range(0, len(ids), bs):
             if stats["requests"] >= maxreq:
@@ -208,8 +213,13 @@ def run_labeling(df, cfg):
         return True
 
     ids = list(texts)
-    if process([x for x in ids if x not in cache]):                       # lần 1
-        process([x for x in ids if x in cache and not cache[x]["ok"] and cache[x]["attempt"] < 2])   # chạy lại 1 lần
+    if skip_llm:
+        missing = set(ids).difference(cache)
+        if missing:
+            raise ValueError(f"Cache thiếu {len(missing)}/{len(ids)} ID của mẫu K7. Hãy bổ sung nhãn trước khi tính.")
+    else:
+        if process([x for x in ids if x not in cache]):                       # lần 1
+            process([x for x in ids if x in cache and not cache[x]["ok"] and cache[x]["attempt"] < 2])   # chạy lại 1 lần
 
     if stats["requests"]:
         log = lc.get("usage_log")
@@ -246,10 +256,11 @@ def run_labeling(df, cfg):
 def handlabel_sample(df, area_col, n, seed, path):
     """Mẫu để gán nhãn tay (mù: không có kết quả LLM). Phân tầng theo khu."""
     df = df[df[area_col].notna()]
-    per = max(1, n // df[area_col].nunique())
-    parts = [g.sample(min(len(g), per), random_state=seed) for _, g in df.groupby(area_col)]
-    s = pd.concat(parts).sample(frac=1, random_state=seed)
-    s = s[["id", "listing_id", area_col, "comment_clean"]].assign(
+    shuffled = df.sample(frac=1, random_state=seed)
+    # Mỗi lượt lấy một review từ mỗi khu còn dữ liệu, cho tới khi đủ n.
+    position = shuffled.groupby(area_col).cumcount()
+    sample = shuffled.loc[position.sort_values(kind="stable").index].head(n)
+    s = sample[["id", "listing_id", area_col, "comment_clean"]].assign(
         hand_language="", hand_sentiment="", hand_community_complaint="")
     s.to_csv(path, index=False, encoding="utf-8-sig")
     print(f"Mẫu gán tay: {len(s)} review -> {path}")
