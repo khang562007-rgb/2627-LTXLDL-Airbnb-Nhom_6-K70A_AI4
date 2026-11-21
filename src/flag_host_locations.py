@@ -104,7 +104,8 @@ def main():
             add(rule, snap, len(flagged), flagged[rule].sum(), note)
         flags = list(RULES)
         flagged[["id"] + flags].to_csv(processed / f"listings_host_location_flags_{snap}.csv.gz",
-                                         index=False, encoding="utf-8-sig")
+                                         index=False, encoding="utf-8-sig",
+                                         compression={"method": "gzip", "mtime": 0})
     rep = pd.DataFrame(report)
     rep.to_csv(ROOT / "data" / "interim" / "qa_parts" / "qa_report_host_locations.csv", index=False, encoding="utf-8-sig")
     print(rep[["rule", "snapshot", "rows_total", "rows_flagged"]].to_string(index=False))

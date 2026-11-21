@@ -124,9 +124,11 @@ def main():
             add(rule, snap, len(cal), cal[rule].sum())
         add("calendar_days_wrong", snap, len(days), days["calendar_days_wrong"].sum())
         listings[["id"] + LISTING_RULES + ["price_clean"]].to_csv(
-            processed / f"listings_price_flags_{snap}.csv.gz", index=False, encoding="utf-8-sig")
+            processed / f"listings_price_flags_{snap}.csv.gz", index=False, encoding="utf-8-sig",
+            compression={"method": "gzip", "mtime": 0})
         cal[["listing_id", "date"] + CALENDAR_ROW_RULES].to_csv(
-            processed / f"calendar_row_flags_{snap}.csv.gz", index=False, encoding="utf-8-sig")
+            processed / f"calendar_row_flags_{snap}.csv.gz", index=False, encoding="utf-8-sig",
+            compression={"method": "gzip", "mtime": 0})
         days.to_csv(processed / f"calendar_listing_flags_{snap}.csv", index=False, encoding="utf-8-sig")
     rep = pd.DataFrame(report)
     rep.to_csv(ROOT / "data" / "interim" / "qa_parts" / "qa_report_price_calendar.csv", index=False, encoding="utf-8-sig")

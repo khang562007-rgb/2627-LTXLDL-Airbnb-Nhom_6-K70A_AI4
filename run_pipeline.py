@@ -92,15 +92,19 @@ def main():
             [py, "src/baseline.py", "--config", args.config, "--input", valid_csv, "--output", f"{proc_dir}/baseline_reviews.csv"],
             args.dry_run,
         )
-        if not args.skip_llm:
-            run_step("K07 community complaint (LLM)", [py, "src/kpi_k7_community_complaint.py", args.config, valid_csv, proc_dir], args.dry_run)
-            run_step(
-                "K08 data reliability (pass 2)",
-                [py, "src/kpi_k8_data_reliability.py", args.config, proc_dir, labels_path, k07_csv],
-                args.dry_run,
-            )
-        else:
-            print("\n[SKIP] Bỏ qua K07 LLM và K08 pass 2 theo cờ --skip-llm.")
+        k07_cmd = [py, "src/kpi_k7_community_complaint.py", args.config, valid_csv, proc_dir]
+        if args.skip_llm:
+            k07_cmd.append("--skip-llm")
+        run_step(
+            "K07 community complaint (LLM cache)" if args.skip_llm else "K07 community complaint (LLM)",
+            k07_cmd,
+            args.dry_run,
+        )
+        run_step(
+            "K08 data reliability (pass 2)",
+            [py, "src/kpi_k8_data_reliability.py", args.config, proc_dir, labels_path, k07_csv],
+            args.dry_run,
+        )
         run_step("Evaluate Baseline & LLM", [py, "src/evaluate.py", "--config", args.config], args.dry_run)
 
     if any(s in steps for s in ("qa", "kpi", "reviews")):

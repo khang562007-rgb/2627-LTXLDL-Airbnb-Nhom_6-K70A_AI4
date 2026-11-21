@@ -1,12 +1,12 @@
 # Phân tích dữ liệu Inside Airbnb — Thành phố Porto (`DSE2049-C04-G06-porto`)
 
-Dự án học phần **Lập trình xử lý dữ liệu (UET.DSE2049)** phân tích thị trường lưu trú ngắn hạn Airbnb tại Porto (tiền tệ `EUR`) qua 4 mốc dữ liệu (`2025-09-21`, `2026-03-26`, `2026-06-23`, `2026-09-19`) gồm các bước: kiểm tra chất lượng & gắn cờ dữ liệu (QA), tính 8 chỉ số KPI (`K01`–`K08`), phân tích review bằng Baseline NLP & LLM, đánh giá đối chiếu và trực quan hóa biểu đồ.
+Dự án học phần **Lập trình xử lý dữ liệu (UET.DSE2049)** phân tích thị trường lưu trú ngắn hạn Airbnb tại Porto (tiền tệ `EUR`, nguồn dữ liệu **Inside Airbnb — CC BY 4.0**) qua 4 mốc dữ liệu (`2025-09-21`, `2026-03-26`, `2026-06-23`, `2026-09-19`) gồm các bước: kiểm tra chất lượng & gắn cờ dữ liệu (QA), tính 8 chỉ số KPI (`K01`–`K08`), phân tích review bằng Baseline NLP & LLM, đánh giá đối chiếu trên tập nhãn tay và trực quan hóa biểu đồ.
 
 ---
 
 ## 1. Yêu cầu Python & Cài đặt môi trường
 
-Phiên bản Python đã kiểm thử của dự án được khai báo trong tệp [`.python-version`](.python-version): **`3.14.7`**.
+Phiên bản Python đã kiểm thử của dự án được khai báo trong tệp [`.python-version`](.python-version): **`3.14.7`** (tương thích Python 3.10+).
 
 ### Các thư viện sử dụng ([`requirements.txt`](requirements.txt))
 
@@ -40,14 +40,12 @@ pip install -r requirements.txt
 ## 2. Cấu hình & Biến môi trường API Key
 
 - Toàn bộ tham số thành phố, mốc dữ liệu, ngưỡng QA, tham số KPI và cấu hình LLM đều nằm trong [`configs/porto.yaml`](configs/porto.yaml).
-- Tên biến môi trường cho bước gọi API LLM (khai báo mẫu tại [`.env.example`](.env.example)):
+- Kết quả gọi LLM của nhóm cho đủ 635 review mẫu đã được lưu sẵn trong cache tại [`data/interim/k7_llm_cache.jsonl`](data/interim/k7_llm_cache.jsonl) và [`data/interim/k7_labels.csv`](data/interim/k7_labels.csv). Vì vậy **không cần cài đặt API key để tái chạy toàn bộ pipeline trên tập dữ liệu Porto**.
+- Nếu muốn gọi lại API LLM cho tập dữ liệu mới chưa có trong cache, sao chép [`.env.example`](.env.example) thành `.env` ở thư mục gốc (đã đưa vào `.gitignore`) và điền biến môi trường:
 
   ```env
   OPENAI_COMPAT_API_KEY=your_api_key_here
   ```
-
-- Nếu muốn tự chạy lại bước gọi LLM, sao chép `.env.example` thành `.env` ở thư mục gốc và điền API key của bạn (tệp `.env` đã được đưa vào `.gitignore`).
-- Kết quả gọi LLM của nhóm đã được lưu sẵn trong cache tại [`data/interim/k7_llm_cache.jsonl`](data/interim/k7_llm_cache.jsonl) và [`data/interim/k7_labels.csv`](data/interim/k7_labels.csv).
 
 ---
 
@@ -60,18 +58,33 @@ python run_pipeline.py --config configs/porto.yaml
 ```
 
 Các tùy chọn hỗ trợ:
-- `--skip-llm`: Bỏ qua bước gọi LLM (`K07`) và `K08` lượt 2 khi máy không cài đặt API key.
+- `--skip-llm`: Chỉ đọc nhãn LLM đã lưu trong cache (không gọi thêm API nếu xuất hiện review mới chưa có trong cache), vẫn tính đầy đủ K07, K08 lượt 2 và đánh giá.
 - `--steps qa kpi reviews viz`: Chỉ chạy các giai đoạn mong muốn.
 - `--with-filter`: Chạy thêm bước lọc dữ liệu thô từ `data/raw/` (`src/filter_all.py` → `src/check_counts.py`).
 - `--dry-run`: In danh sách các lệnh sẽ thực thi mà không chạy thật.
+
+### Quy trình gán nhãn tay và đánh giá Baseline / LLM
+
+1. Sinh tệp mẫu gán nhãn tay (nếu cần tạo mới):
+   ```bash
+   python src/kpi_k7_evidence_review.py configs/porto.yaml data/processed/reviews_valid.csv data/processed --handlabel
+   ```
+2. Điền 3 cột `hand_language`, `hand_sentiment` (`positive`/`mixed`/`negative`), `hand_community_complaint` (`0`/`1`) trong [`data/interim/k7_handlabel_sample.csv`](data/interim/k7_handlabel_sample.csv) (nhóm đã hoàn thiện 150 dòng).
+3. Chạy đánh giá đối chiếu Baseline và LLM so với nhãn tay (cũng tự động chạy trong `run_pipeline.py`):
+   ```bash
+   python src/evaluate.py --config configs/porto.yaml --out-dir reports
+   ```
 
 ---
 
 ## 4. Các tệp đầu ra cần kiểm tra sau khi chạy
 
-### Báo cáo QA (`reports/`)
-- [`reports/qa_report.csv`](reports/qa_report.csv) — Báo cáo QA tổng hợp (các quy tắc QA, số dòng và tác động KPI trước/sau QA)
-- [`reports/k05_checks.csv`](reports/k05_checks.csv) & [`reports/k05_sensitivity.csv`](reports/k05_sensitivity.csv)
+### Báo cáo & đánh giá (`reports/`)
+- [`reports/qa_report.csv`](reports/qa_report.csv) — Báo cáo QA tổng hợp (quy tắc QA, số dòng và tác động KPI trước/sau QA)
+- [`reports/data_dictionary.md`](reports/data_dictionary.md) — Từ điển dữ liệu chi tiết
+- [`reports/eval_summary.csv`](reports/eval_summary.csv) — Độ chính xác và F1 của Baseline & LLM so với 150 nhãn tay
+- [`reports/eval_baseline_vs_llm.csv`](reports/eval_baseline_vs_llm.csv) & [`reports/eval_mismatches.csv`](reports/eval_mismatches.csv) — Đối chiếu chéo Baseline vs LLM và danh sách ca sai lệch để phân tích lỗi
+- [`reports/k05_checks.csv`](reports/k05_checks.csv) & [`reports/k05_sensitivity.csv`](reports/k05_sensitivity.csv) — Kiểm định và độ nhạy K05 (`Average Stay = 2, 3, 5`)
 
 ### Dữ liệu KPI, Review & LLM (`data/processed/` & `data/interim/`)
 - **KPI K01–K08**:
@@ -86,10 +99,10 @@ Các tùy chọn hỗ trợ:
 - **Review & NLP / LLM**:
   - `data/processed/reviews_valid.csv`
   - `data/processed/baseline_reviews.csv`
-  - `data/interim/k7_llm_cache.jsonl` & `data/interim/k7_labels.csv`
+  - `data/interim/k7_llm_cache.jsonl`, `data/interim/k7_labels.csv` & `data/interim/k7_handlabel_sample.csv`
 
 ### Biểu đồ trực quan (`figures/`)
-- `figures/fig01_qa_flags_overview.png` — Tổng hợp tỷ lệ gắn cờ QA theo rule và snapshot
+- `figures/fig01_qa_flags_overview.png` — Tổng hợp tỷ lệ gắn cờ QA theo quy tắc và mốc chụp
 - `figures/fig02_k1_k2_k3_structure.png` — Cơ cấu thị trường K01–K03 theo khu phân tích (`A01`–`A08`)
 - `figures/fig03_k4_supply_change.png` — Biến động nguồn cung ròng K04
 - `figures/fig04_k5_revenue_tax.png` — Doanh thu ước tính và thuế du lịch tiềm năng K05
@@ -105,11 +118,11 @@ Các tùy chọn hỗ trợ:
 ├── configs/porto.yaml          # Cấu hình toàn bộ pipeline cho Porto
 ├── data/
 │   ├── raw/                    # Dữ liệu thô Inside Airbnb (gitignored)
-│   ├── samples/                # Danh sách ID mẫu nhóm & từ điển baseline
-│   ├── interim/                # Dữ liệu đã lọc theo mẫu nhóm & cache nhãn LLM
+│   ├── samples/                # Danh sách ID mẫu nhóm & mẫu review
+│   ├── interim/                # Dữ liệu đã lọc theo mẫu nhóm, nhãn tay & cache LLM
 │   └── processed/              # Dữ liệu gắn cờ QA và các bảng KPI (K01–K08)
 ├── src/                        # Mã nguồn xử lý theo từng module (QA, KPI, Baseline, LLM, Evaluate, Viz)
-├── reports/                    # Báo cáo QA, kiểm tra K05, đánh giá và báo cáo cuối kỳ
+├── reports/                    # Báo cáo QA, kiểm tra K05, đánh giá, từ điển dữ liệu & báo cáo cuối kỳ
 ├── figures/                    # Biểu đồ PNG do src/viz.py tạo tự động
 ├── run_pipeline.py             # Lệnh chạy toàn bộ pipeline
 ├── run_audits.py               # Kiểm tra tính nhất quán các cột cờ QA

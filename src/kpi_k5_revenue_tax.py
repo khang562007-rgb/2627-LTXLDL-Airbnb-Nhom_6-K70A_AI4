@@ -17,32 +17,42 @@ Calendar chỉ dùng để đối chiếu (bảng checks), không ép số đêm
     reports/k05_checks.csv                (kiểm tra ngoại lệ và đối chiếu calendar)
 """
 import argparse
+import sys
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import yaml
 
+ROOT = Path(__file__).resolve().parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
 try:
     from src.kpi_k6_commercial_share import load_area_map
-except ImportError:                                   # chạy dạng package: python -m src.kpi5
-    from src.kpi_k6_commercial_share import load_area_map
+except ImportError:
+    from kpi_k6_commercial_share import load_area_map
 
 COLUMNS = ["kpi_id", "kpi_name", "snapshot", "neighbourhood_cleansed", "period",
            "value", "unit", "currency", "n_used", "n_excluded"]
-MEASURES = [  # (kpi_name, cột trong bảng tổng hợp, unit, currency, số chữ số thập phân)
-    ("estimated_booked_nights", "nights", "nights/year", "", 1),
-    ("estimated_occupancy", "occ", "%", "", 1),
-    ("estimated_revenue", "revenue", "EUR/year", "EUR", 2),
-    ("estimated_revenue_short_stay", "rev_short", "EUR/year", "EUR", 2),
-    ("estimated_revenue_long_stay", "rev_long", "EUR/year", "EUR", 2),
-    ("tourist_tax_potential_all", "tax_all", "EUR/year", "EUR", 2),
-    ("tourist_tax_potential_licensed", "tax_lic", "EUR/year", "EUR", 2),
-    ("tourist_tax_short_stay", "tax_short", "EUR/year", "EUR", 2),
-    ("tourist_tax_long_stay", "tax_long", "EUR/year", "EUR", 2),
-    ("price_outlier_listings", "out_n", "listings", "", 0),
-    ("price_outlier_revenue", "out_rev", "EUR/year", "EUR", 2),
-]
+
+
+def get_measures(currency: str):
+    cur = currency or "EUR"
+    cur_yr = f"{cur}/year"
+    return [  # (kpi_name, cột trong bảng tổng hợp, unit, currency, số chữ số thập phân)
+        ("estimated_booked_nights", "nights", "nights/year", "", 1),
+        ("estimated_occupancy", "occ", "%", "", 1),
+        ("estimated_revenue", "revenue", cur_yr, cur, 2),
+        ("estimated_revenue_short_stay", "rev_short", cur_yr, cur, 2),
+        ("estimated_revenue_long_stay", "rev_long", cur_yr, cur, 2),
+        ("tourist_tax_potential_all", "tax_all", cur_yr, cur, 2),
+        ("tourist_tax_potential_licensed", "tax_lic", cur_yr, cur, 2),
+        ("tourist_tax_short_stay", "tax_short", cur_yr, cur, 2),
+        ("tourist_tax_long_stay", "tax_long", cur_yr, cur, 2),
+        ("price_outlier_listings", "out_n", "listings", "", 0),
+        ("price_outlier_revenue", "out_rev", cur_yr, cur, 2),
+    ]
 DEFAULTS = {"id": "K05", "slug": "revenue_tax", "review_rate": 0.5, "average_stay_nights": 3,
             "sensitivity_average_stay": [2, 3, 5], "occupancy_cap": 0.70, "max_nights_per_year": 365,
             "use_iqr_fence": True, "iqr_k": 1.5,
@@ -140,13 +150,13 @@ def aggregate(df, avg_stay, p):
     return g.reset_index(), used, cap
 
 
-def to_long(g, snap, kpi_id):
+def to_long(g, snap, kpi_id, currency="EUR"):
     frames = [pd.DataFrame({
         "kpi_id": kpi_id, "kpi_name": name, "snapshot": snap,
         "neighbourhood_cleansed": g["analysis_area"].values, "period": snap,
         "value": g[col].round(nd).values, "unit": unit, "currency": cur,
         "n_used": g["n_used"].values, "n_excluded": g["n_excluded"].values,
-    }) for name, col, unit, cur, nd in MEASURES]
+    }) for name, col, unit, cur, nd in get_measures(currency)]
     return pd.concat(frames, ignore_index=True)[COLUMNS]
 
 
@@ -208,11 +218,12 @@ def run(cfg, save=True):
     print("Tham so K5:", {k: v for k, v in p.items() if k not in ("id", "slug")})
     area_map = load_area_map(cfg)
     kpis, senss, chks = [], [], []
+    currency = cfg.get("currency", "EUR")
     for snap in cfg["snapshots"]:
         snap = str(snap)
         df = prepare(snap, cfg, area_map, p)
         g, used, cap = aggregate(df, p["average_stay_nights"], p)
-        kpis.append(to_long(g, snap, p["id"]))
+        kpis.append(to_long(g, snap, p["id"], currency=currency))
         senss.append(sensitivity(df, snap, p))
         chks.append(checks(df, used, cap, snap, cfg))
     kpi, sens, chk = (pd.concat(x, ignore_index=True) for x in (kpis, senss, chks))

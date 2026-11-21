@@ -1,116 +1,70 @@
-﻿id,base_lang,base_sent,base_comm,llm_lang,llm_sent,llm_comm
-33518134,en,positive,1,en,mixed,1
-866546027185520686,en,negative,1,en,negative,0
-663617305983127917,en,positive,0,en,mixed,0
-1112303386465468610,en,mixed,0,en,positive,0
-158405191,en,positive,0,en,mixed,0
-1425294899491632708,en,positive,0,en,mixed,0
-207075891,en,positive,1,en,negative,1
-158580999,en,positive,0,en,mixed,0
-191922326,en,positive,0,en,mixed,0
-162943379,en,positive,1,en,mixed,1
-227239942,en,mixed,0,en,positive,0
-738989904277979402,en,positive,1,en,mixed,1
-82792016,en,,0,en,positive,0
-1487626255750384100,en,positive,0,en,mixed,0
-483129938,en,mixed,0,en,positive,0
-409185462536229169,en,positive,0,en,mixed,1
-789718307885843041,en,mixed,1,en,mixed,0
-1148498535856257593,en,positive,1,en,positive,0
-303473672,en,mixed,0,en,positive,0
-193646112,en,positive,0,en,mixed,1
-1302867384281460458,en,mixed,1,en,positive,0
-433782078564242026,en,mixed,0,en,positive,0
-1124540094456895010,en,mixed,0,en,mixed,1
-1207174924430922186,en,positive,0,en,mixed,0
-1260823786678334568,en,positive,0,en,mixed,0
-932510844319739964,en,positive,0,en,mixed,0
-1246264271414070060,en,mixed,0,en,positive,0
-674405001742465583,en,negative,1,en,mixed,1
-589674812937864360,en,positive,0,en,mixed,0
-999217717943779984,en,positive,1,en,mixed,1
-1457247036009287077,en,mixed,1,en,mixed,0
-991141904486439751,en,positive,0,en,mixed,0
-443960013158369038,en,mixed,1,en,positive,0
-453925193,en,positive,1,en,mixed,1
-733857091106204293,en,positive,1,en,mixed,1
-657768387816343014,en,mixed,0,en,mixed,1
-703412699536475492,en,positive,0,en,mixed,1
-591184482273919245,en,positive,0,en,mixed,0
-735351285339973033,en,positive,0,en,mixed,0
-664317348563559928,en,positive,0,en,mixed,0
-718711853473316983,en,positive,0,en,mixed,0
-1426070750152637622,en,mixed,0,en,mixed,1
-1306498111185651109,en,positive,0,en,mixed,0
-743354554539207129,en,positive,0,en,mixed,0
-985389005580543319,en,positive,0,en,mixed,0
-702770526236346893,en,positive,0,en,mixed,0
-857097855834199895,en,positive,1,en,mixed,1
-1325324851071455558,en,positive,0,en,mixed,0
-1406468949253533965,en,positive,0,en,mixed,0
-876698366430912843,en,mixed,0,en,positive,0
-985346575187584433,en,positive,0,en,mixed,1
-1134645001590357298,en,mixed,0,en,positive,0
-1175227718703205432,en,positive,0,en,mixed,0
-657073131062896302,en,positive,0,en,mixed,1
-653414264767841983,en,positive,0,en,mixed,0
-686748566441055454,en,positive,1,en,mixed,1
-662850991228729512,en,positive,1,en,mixed,1
-1175333212810727723,en,mixed,0,en,positive,0
-1127485456534388409,en,positive,0,en,mixed,0
-991216487161389318,en,mixed,1,en,positive,0
-931701885419235173,en,positive,0,en,mixed,0
-1189760394665832564,en,mixed,1,en,positive,0
-1481085438900257797,en,positive,0,en,mixed,1
-693290354367875559,en,positive,1,en,mixed,1
-732446621845325237,en,positive,1,en,mixed,1
-958528137405668626,en,positive,0,en,mixed,0
-757860452416519331,en,positive,0,en,mixed,0
-1499300675021168215,en,positive,0,en,mixed,0
-1316657401713374852,en,positive,0,en,mixed,0
-1247027639976647723,en,negative,1,en,mixed,1
-870911753147996318,en,positive,1,en,mixed,1
-1225274173672334115,en,positive,0,en,negative,1
-690357861150885710,en,mixed,0,en,positive,0
-1152151514822001231,en,positive,1,en,mixed,1
-951338877737952394,en,mixed,0,en,mixed,1
-920845845862145780,en,positive,0,en,mixed,0
-1193358443067568549,en,positive,0,en,mixed,0
-852742933209950828,en,mixed,0,en,negative,0
-762134951150537194,en,mixed,0,en,positive,0
-1281833229952398498,en,mixed,0,en,positive,0
-973820287299319036,en,positive,0,en,mixed,0
-1176765219311197580,en,positive,0,en,mixed,0
-1011465721952981056,en,mixed,0,en,positive,0
-1194097187854676753,en,positive,0,en,mixed,0
-1413755729712528957,en,negative,0,en,positive,0
-907878488380486150,en,positive,0,en,mixed,1
-1134681682249742409,en,mixed,0,en,positive,0
-1470219231998330691,en,mixed,0,en,positive,0
-945566021751360524,en,positive,1,en,positive,0
-1144826699634701183,en,positive,0,en,mixed,1
-1449961384521927831,en,positive,0,en,mixed,0
-1180316329422439680,en,positive,0,en,mixed,1
-1257161950866766918,en,positive,0,en,mixed,0
-1259360301711825828,en,positive,0,en,mixed,0
-1213008217764387857,en,positive,1,en,mixed,1
-1247037408246580908,en,positive,0,en,mixed,1
-1424577377831539277,en,positive,0,en,mixed,0
-1231795811767524098,en,positive,0,en,mixed,0
-1467364969691551741,en,positive,0,en,mixed,0
-1125216245335918070,en,positive,1,en,positive,0
-1331158831891511312,en,positive,0,en,mixed,1
-1252130105803681256,en,positive,1,en,mixed,1
-1414468216774212891,en,positive,0,en,mixed,1
-1475283797530244760,en,positive,1,en,mixed,1
-1321733620314693513,en,mixed,0,en,positive,0
-1499291145546160402,en,positive,0,en,mixed,0
-1437596963253772229,en,positive,0,en,mixed,0
-1504368401297482492,en,positive,0,en,mixed,0
-1506549994378008887,en,positive,0,en,mixed,0
-1469504238965641953,en,positive,0,en,mixed,0
-1479737272969313943,en,positive,0,en,mixed,0
-1491998456332100694,en,mixed,1,en,positive,0
-1450737804013408290,en,positive,0,en,mixed,0
-1462970035264932138,en,mixed,1,en,mixed,0
-1510893728533682461,en,positive,0,en,mixed,0
+﻿snapshot,id,listing_id,date,comment_clean,hand_language,hand_sentiment,hand_community_complaint,hand_lang,hand_sent,hand_comm,base_lang,base_sent,base_comm,llm_lang,llm_sent,llm_comm,llm_mismatch,base_mismatch
+2025-09-21,453925193,33586689,2019-05-17,Lovely flat very well situated. In a nice area very close to bars and restaurant. Could be a bit noisy at night.,en,mixed,1,en,mixed,1,en,positive,1,en,mixed,1,False,True
+2025-09-21,973820287299319036,804210664946022714,2023-09-05,The location of this Airbnb is perfect in Porto and I would recommend staying here. However some amenities listed are not present in the apartment such as the washing machine and the iron. There is also no cutlery so do not book expecting to be cooking your own meals. The apartment was clean and communication was great with the host. I would stay again.,en,mixed,0,en,mixed,0,en,positive,0,en,mixed,0,False,True
+2025-09-21,732446621845325237,633818572803574474,2022-10-07,"Great apartment and location! We just had some noise issues in the apartment hallway and construction outside. Otherwise, great!",en,mixed,1,en,mixed,1,en,positive,1,en,mixed,1,False,True
+2025-09-21,991141904486439751,34899971,2023-09-29,"This is such a lovely home tucked into the historic streets of Porto. our host was so helpful and responsive. Our only recommendation is to clarify that laundry is in another nearby building and it is shared with other apartments. We wasted most of our first night finding it, waiting for it to be free, and then realizing it was a very long cycle. Otherwise we'd highly recommend this place!",en,mixed,0,en,mixed,0,en,positive,0,en,mixed,0,False,True
+2025-09-21,702770526236346893,47828610,2022-08-27,"Pretty little house near the sea, quiet and clean about 30 minutes by bus into the city. The only downside is that the bathroom is on the ground floor and the bedrooms upstairs which wouldn't be so much of an issue for some people if it wasn't for the very narrow spiral staircase. The area is lovely and it was nice to be away from the crowds of the city. The house is very well equipped and Joana is a kind and welcoming host.",en,mixed,0,en,mixed,0,en,positive,0,en,mixed,0,False,True
+2025-09-21,409185462536229169,19285816,2021-07-18,"Amazing location, spacious apartment, beautifully decorated! The only downside, it was hot! We knew there was no A/C and were hopping the Porto breeze would be enough to cool things down at night. Unfortunately being so close to the center means there was just too much noise to leave the windows open at night. We would definitely come back, but not during the summer.",en,mixed,1,en,mixed,1,en,positive,0,en,mixed,1,False,True
+2025-09-21,951338877737952394,713139523702235766,2023-08-05,"We stayed in Ricardo’s apartment for 4 nights, mid summer. We received very clear instructions regarding our arrival and the communication was very smooth. The apartment was very clean; I couldn’t find any dirty dishes or something familiar. The view from the apartment was great and the neighbors were very friendly. The apartment has a great view but is located on a very steep hill, therefore I won’t recommend it for elder people. All in all, we had a amazing holiday and we keep dreaming of the incredible view from the balcony!",en,mixed,1,en,mixed,1,en,mixed,0,en,mixed,1,False,True
+2025-09-21,33518134,4178954,2015-05-29,"Perfect. Everything was great. Really nice flat, nice atmosphere. A bit noisy in the morning but Porto has to be seen anyway so not a problem at all! Very good location as well.",en,mixed,1,en,mixed,1,en,positive,1,en,mixed,1,False,True
+2025-09-21,733857091106204293,33830865,2022-10-09,"Amazing location and very good communication with the host. Lovely spacious studio and very clean. Quite loud at night with music playing in bar/restaurant below, it didn’t bother us at all as we can sleep through noise but just a heads up if you stay. The host always responded instantly and we had a fabulous time here, thank you!",en,mixed,1,en,mixed,1,en,positive,1,en,mixed,1,False,True
+2025-09-21,1406468949253533965,50996331,2025-04-24,"Overall a good stay. Kitchen was stocked minimally. Very basic supplies (garbage bags, toilet paper) only lasted for a couple days then had to supply our own. Couple areas needed a deep clean. Quiet building, didn't really hear anyone around us. Lots of stairs, but a small elevator can be used. Decent area to get to transit. Would stay again.",en,mixed,0,en,mixed,0,en,positive,0,en,mixed,0,False,True
+2025-09-21,158580999,13821819,2017-06-07,"It is a nice place to stay, The bathroom and the toilet is in the room. It is separated but still looks to much. Apart that is a good place.",en,mixed,0,en,mixed,0,en,positive,0,en,mixed,0,False,True
+2025-09-21,1510893728533682461,1414396988003692358,2025-09-15,"On arrival at the apartment the key hadn’t been left in the lockbox. After calling AirBnB and Portugal Active this was dealt with, but we were left outside for almost an hour. After a day of travelling this was less than ideal and unnecessarily stressful. The apartment was comfortable and in a good location. The outside space felt a little unloved - with some attention it could be a more pleasant place to be. We didn’t use the jacuzzi as we weren’t confident that it was ready for use. We loved Porto, it’s a great city.",en,mixed,0,en,mixed,0,en,positive,0,en,mixed,0,False,True
+2025-09-21,1481085438900257797,599862892300404553,2025-08-05,Thank you to all at Bloom apartments for making our first stay in Porto easy ! The guy ( maintenance) in the apartment was super friendly and very helpful ( thank you ) It’s a very busy area but wilt in the apartment the noise wasn’t too bad,en,mixed,1,en,mixed,1,en,positive,0,en,mixed,1,False,True
+2025-09-21,657073131062896302,51847076,2022-06-25,"Excellent location! Communication with the host was great, check in was great. The place was clean. Only thing I will point out is that the front room with the single bed is street facing,so it is slightly louder in there on a busy night. The main bedroom is very quiet though. I loved my stay!",en,mixed,1,en,mixed,1,en,positive,0,en,mixed,1,False,True
+2025-09-21,1414468216774212891,1214373862563088840,2025-05-05,"Beautiful view, quiet neighbors. Downstairs there is subway and cars, with open windows can be a bit noisy, but the view and amenities in the apartment override everything. We had a good vacation here, we didn't want to go out",en,mixed,1,en,mixed,1,en,positive,0,en,mixed,1,False,True
+2025-09-21,693290354367875559,645485225012865513,2022-08-14,"Patricia was a great host! The Apartment is cosy and beautiful. It is a bit noisy, being in the very centre of the city! We had a lovely time!",en,mixed,1,en,mixed,1,en,positive,1,en,mixed,1,False,True
+2025-09-21,674405001742465583,28666484,2022-07-19,Nice location. Loft is well equipped for small family. The loft is facing the street so could be a bit noisy.,en,mixed,1,en,mixed,1,en,negative,1,en,mixed,1,False,True
+2025-09-21,1499300675021168215,639958931255020164,2025-08-30,"Spacious apartment, close to everything. João was very responsive. Beds a little hard, but you get used to it.",en,mixed,0,en,mixed,0,en,positive,0,en,mixed,0,False,True
+2025-09-21,738989904277979402,16169269,2022-10-16,The apartment is very centrally located and hence both very convenient and a bit noisy. The flat is well designed and has all you need for a short and nice stay. Maria is very reactive and provides the necessary support if needed.,en,mixed,1,en,mixed,1,en,positive,1,en,mixed,1,False,True
+2025-09-21,1247037408246580908,965866382039419479,2024-09-16,"The space is quite cozy and comfortable to stay in. The location is great as you're able to walk to a lot of great sightseeing areas. But it's also on a very busy road, so if you're a light sleeper, it's a bit though to get a good night's rest. The apartment was spotless and the host was very helpful.",en,mixed,1,en,mixed,1,en,positive,0,en,mixed,1,False,True
+2025-09-21,191922326,14856100,2017-09-09,"It was a nice stay. Rooms are okay, nothing special, but cozy :) The only bad thing is that there was no kettle in the apartment.",en,mixed,0,en,mixed,0,en,positive,0,en,mixed,0,False,True
+2025-09-21,686748566441055454,52258131,2022-08-05,Great location & a decent space to base yourself in Porto. The room was a bit noisy as others have mentioned but it didn’t keep us awake. The check in was easy and communication was clear.,en,mixed,1,en,mixed,1,en,positive,1,en,mixed,1,False,True
+2025-09-21,852742933209950828,783171517215368914,2023-03-22,Sadly the intetnet didn't worked or was incredible weak to the point that it wouldn't even load messages and they did nothing about it. Also please be aware the hot water lasts very little and even with the air conditioner on he's not enough for the whole place and it's a bit cold. Also theres no curtains so if you want daily light people can see you from other windows. The bathroom also lacks a place inside the bath area to put our personal cleaning amenities. If you come witu a big bag the entry door is small and there's no elevator,en,negative,0,en,negative,0,en,mixed,0,en,negative,0,False,True
+2025-09-21,1247027639976647723,653511581996558874,2024-09-16,A little noisy late at night due to nearby venue playing very loud music until 1am. General decor in need of freshening up.,en,mixed,1,en,mixed,1,en,negative,1,en,mixed,1,False,True
+2025-09-21,162943379,15371172,2017-06-23,"Very good location, close to a central square at the river area. Street was noisy due to the summer festival that was going on but we knew this based on other reviews. Carlos was very helpful at check giving us suggestions for what to do, and answered questions that we had. We were able to store our luggage prior to the check in.",en,mixed,1,en,mixed,1,en,positive,1,en,mixed,1,False,True
+2025-09-21,1437596963253772229,1326800529738491400,2025-06-06,"This is a good place to crash for a night. Beware that even though there is no AC (as they said), there is no fan either, and the apartment can get very hot! You also may want to bring your own pillow… With that said, the location is AMAZING! You are just steps from everything in Porto, and the hosts were very kind. For a night, maybe a weekend if you are on the go, this place is a great value for the cost.",en,mixed,0,en,mixed,0,en,positive,0,en,mixed,0,False,True
+2025-09-21,789718307885843041,17520998,2022-12-25,"It’s a good place, you can walk surround the neighborhood, it’s not too close to the main center but easy to get there, the bed was uncomfortable with annoyed sounds while you’re moving, much better the sofa bed, the internet was super fast, you have to buy your own flame lighter otherwise you cannot cook",en,mixed,0,en,mixed,0,en,mixed,1,en,mixed,0,False,True
+2025-09-21,866546027185520686,7257994,2023-04-10,"Manuela's place was more run down than what the pictures show, including some dirty walls. Biggest problem was the distance from the center of town. It says in the ad that it is a 20 minute walk to the center of town, when it is really a 45 minute walk. We left one day early because of this.",en,negative,0,en,negative,0,en,negative,1,en,negative,0,False,True
+2025-09-21,1487626255750384100,16966077,2025-08-14,"the place is very well located and has a beautiful garden. it has basic things but some other essesntial things that are usually expected at an airbnb, toilet paper, shampoos and coffee ect. .",en,mixed,0,en,mixed,0,en,positive,0,en,mixed,0,False,True
+2025-09-21,662850991228729512,52261218,2022-07-03,"Great location, nice shower and a welcoming host! The walls were a bit thin but other than that I had a great stay.",en,mixed,1,en,mixed,1,en,positive,1,en,mixed,1,False,True
+2025-09-21,1180316329422439680,944943369333236597,2024-06-16,"Very nice apartment that fits the pictures perfectly. Jose welcomed us personally with a precise introduction, he was very considerate and we felt very welcome in the apartment. Only minus is noise from the big street nearby. The windows take most of the noise but light sleepers should maybe bring ear plugs :)",en,mixed,1,en,mixed,1,en,positive,0,en,mixed,1,False,True
+2025-09-21,1252130105803681256,1126013393300885661,2024-09-23,"The apartment was located up a narrow lane close to the main road along the river. Nice restaurants, a bakery, a pharmacy, medical clinic and grocery nearby. You should know that there is a large flight of stairs to get up to it. Plus there were no instructions or information for any of the appliances or for the area. The apartment was comfortable, beds were nice. But, the attached house next door was being renovated/demolished so the noise during the day was rather annoying.",en,mixed,1,en,mixed,1,en,positive,1,en,mixed,1,False,True
+2025-09-21,857097855834199895,50461098,2023-03-28,We had a good time at Adriana’s apartment despite the fact that the apartment is very noisy because of the road beside. I recommend anyway,en,mixed,1,en,mixed,1,en,positive,1,en,mixed,1,False,True
+2025-09-21,985346575187584433,51442778,2023-09-21,"We had a wonderful time in Porto, staying in this marvelous apartment which is in a very central location. Mariana was very responsive. Nothing to do with the host but a central location does come with some street news which was expected and didn’t bother us. We would stay here again.",en,mixed,1,en,mixed,1,en,positive,0,en,mixed,1,False,True
+2025-09-21,1426070750152637622,43195120,2025-05-21,"It was all very good at this place. The only problems were that the bathroom smelled very strongly of humidity and that when you showered, too much water would spill out of the shower floor, wetting the bathroom floor. All the rest was impeccable.",en,mixed,1,en,mixed,1,en,mixed,0,en,mixed,1,False,True
+2025-09-21,1467364969691551741,1069503006314471247,2025-07-17,"Check in was a bit of wait about half hour to get the keys and one of the key door was not the right one. Otherwise, everything was excellent.",en,mixed,0,en,mixed,0,en,positive,0,en,mixed,0,False,True
+2025-09-21,870911753147996318,675763800663976401,2023-04-16,"It was a nice apartment, good location with lots of resturants around. Only thing that bothered me was that on Friday and Saturday there was loud music that started playing around midnight somewhere around that we heard well in the apartment.",en,mixed,1,en,mixed,1,en,positive,1,en,mixed,1,False,True
+2025-09-21,1306498111185651109,41073219,2024-12-07,"Nice and cosy place though have to walk up many flight of stairs in the apartment. The many flight of stairs will be tough for the elderly, those with knee problems and those that have heavy and big luggage. On the whole, the place is within walking distance from most place of interests.",en,mixed,0,en,mixed,0,en,positive,0,en,mixed,0,False,True
+2025-09-21,1457247036009287077,34702750,2025-07-03,"We had a lovely stay in beautiful Porto in Late June/early July. Sonia's apartment was a great find. A spacious 3 bed apartment, beautifully decorated with everything as described. A very short walk to the train and local shops made it an ideal location, near but far enough from the centre which meant there was little noise at night and not much early morning traffic outside either. The only negatives we would have with Sonias place would be: 1. the beds were not very comfortable. 2. As it was very hot when we were there, an air conditioning system would have been lovely. There were fans in each bedroom but they were noisy at night. Otherwise we had a lovely stay and found Sonia, very helpful and contactable at short notice. A lovely visit!",en,mixed,0,en,mixed,0,en,mixed,1,en,mixed,0,False,True
+2025-09-21,1422437158455126697,822759574860019117,2025-05-16,"Great flat, but the location was poor, too far away, looks a bit rough in that area. definitely get an uber on the night",en,negative,1,en,negative,1,en,negative,0,en,negative,0,True,True
+2025-09-21,1175227718703205432,51524034,2024-06-09,"Lovely little apartment with an outdoor space - nice to have for our week long stay, perfect space for 2. Not in the middle of the city centre but very accessible by walking. Our host Giovanna was very friendly in meeting us. Some damage to the bedroom wall upon arrival which wasn’t an issue, all in all a lovely stay and would happily return :)",en,mixed,0,en,mixed,0,en,positive,0,en,mixed,0,False,True
+2025-09-21,1152151514822001231,710627938446029837,2024-05-08,"The host responds very quickly and the place is clean and tidy, but it's very noisy throughout the day and night.",en,mixed,1,en,mixed,1,en,positive,1,en,mixed,1,False,True
+2025-09-21,876698366430912843,50408466,2023-04-24,"I really enjoyed my time there! The apartment was very nice and super comfortable and cozy. It had everything I could possibly need. They asked me everyday if I wanted my room/apartment clean. Every time I told them yes, they left the room completely spotless to the same level I got when I first arrived on my very first day. I was very impressed with the level of commitment they have with making the guest experience pleasant and easy. I have no problem recommending this place and I will definitely keep it in mind for my next visit to Porto.",en,positive,0,en,positive,0,en,mixed,0,en,positive,0,False,True
+2025-09-21,492563964598978452,13494012,2021-11-10,"Rien à dire. Everything was as described, and Fernando (Rita's dad) is the best host you could hope for. He was very responsive and helpful throughout all our stay. The place was super clean, and the location was very convenient (bus stops everywhere around to go to the city or elsewhere). Bonus: Fernando speaks very good French. All in all, it was great.",en,positive,0,en,positive,0,en,positive,0,fr,positive,0,True,False
+2025-09-21,1331158831891511312,1173787833528340503,2025-01-10,"The unit looks more beautiful and spacious than in the photos published. You have everything that you need for a traveler like us. The heating was working nicely. As an Asian, this is also the first time I used a European style bathroom/bidet and it was helpful for my bathroom needs. The room is not that soundproof though so you can hear footstep noises upstairs and some talking voices etc from the other room. Pedro's parents who welcomed us are also very kind, polite and made sure we have everything.",en,mixed,1,en,mixed,1,en,positive,0,en,mixed,1,False,True
+2025-09-21,1449961384521927831,874028898065099507,2025-06-23,Apartment is great for a long weekend. Compact in size but perfect for a couple getting away. Location is good and just a short walk from everything you require. We did have some issues with the bathroom which José said he would address. Would certainly recommend.,en,mixed,0,en,mixed,0,en,positive,0,en,mixed,0,False,True
+2025-09-21,1031829776633693317,979777539281572717,2023-11-24,It's pretty good！it's the most beautiful hotel i lived before！The garden，the living room，the bedroom and the breakfast are really perfect！So herevyou just need to enjoy your time because the service is pretty good！I must recommend my friends come here next time！I will come back next time！,en,positive,0,en,positive,0,en,positive,0,zh,positive,0,True,False
+2025-09-21,193646112,17987773,2017-09-14,"This apartment was wonderful! Great location and size. As people describe, there is street noise. We luckily brought ear plugs and had no trouble sleeping.",en,mixed,1,en,mixed,1,en,positive,0,en,mixed,1,False,True
+2025-09-21,1225274173672334115,675855783771403229,2024-08-17,"all great, except one guy came without notice to fix the thermostat. No notice AT ALL, just went into de apartment when mi girlfriend was alone in there and he didn't even speak English. scary",en,negative,1,en,negative,1,en,positive,0,en,negative,1,False,True
+2025-09-21,999217717943779984,32118112,2023-10-10,Really convenient place to stay to enjoy Porto. Simple and nice and just like the pictures. Only be aware there is a road nearby that is a little loud if you are a light sleeper. Everything you need to be self sufficient and good advice on where to eat. The restaurant underneath (Brazilian) is good and very reasonable - best banana jam desert!,en,mixed,1,en,mixed,1,en,positive,1,en,mixed,1,False,True
+2025-09-21,1144826699634701183,896337508122719287,2024-04-28,Nice clean place. Carlos is so friendly and helpful. The bed was a bit of cheap kind and made some noises. Not a big deal since Carlos said that he is replacing it with a better one soon.,en,mixed,1,en,mixed,1,en,positive,0,en,mixed,1,False,True
+2025-09-21,1425294899491632708,6456563,2025-05-20,"Nice place, lovely location but the bedroom does not have a door and leads into the living area where the third person is staying.",en,mixed,0,en,mixed,0,en,positive,0,en,mixed,0,False,True
+2025-09-21,1260823786678334568,23465144,2024-10-05,"The only negative was being on the 3rd floor and no lift, quite an effort to get your bags up. Otherwise apartment was great, well located and everything you need",en,mixed,0,en,mixed,0,en,positive,0,en,mixed,0,False,True
+2025-09-21,1176765219311197580,827695569938786743,2024-06-11,"The stay is very next to Porto old town. Most of the highlights were walkable distance away. The apartment is as described. + very close to old town + access to supermarket + private covered parking + responsive host + welcome with a bottle of wine:) Neutral: old apartment building with lot of keys (counted 6 and used 5). Front door, apartment door,lift to parking lot. Parking lot entry. - parking lot is right next to a pillar and a bit tight to enter with remote doors which closes very fast. Need expert driving skill to park - the oven was not working and the moment we turned on to grill something entire power to the apartment was lost. The fuse tripped. Reported it and Hopefully they fix it soon. Suggestion : They still could do with a curtain to go with the rollers.",en,mixed,0,en,mixed,0,en,positive,0,en,mixed,0,False,True
+2025-09-21,1475283797530244760,1227293922249156466,2025-07-28,Great location but if you are in the centre of Porto you need to be aware it will be noisy. We had a fabulous time. A lovely city to visit and enjoy yourself.,en,mixed,1,en,mixed,1,en,positive,1,en,mixed,1,False,True
+2025-09-21,653414264767841983,53040853,2022-06-20,Great location. Close to the river and some tucked away restaurants. The only thing we were lacking was WiFi so my son could do his online schooling.,en,mixed,0,en,mixed,0,en,positive,0,en,mixed,0,False,True
+2025-09-21,1462970035264932138,1379616190394728615,2025-07-11,"The room and bathroom were clean and welcoming. With no kitchen, they served a small but adequate breakfast every morning, which we enjoyed. However, it was clear when we tried to contact the host on the Airbnb app that we were talking with an AI, which gave us contradictory answers to our questions and was not very helpful when we asked for accomodations. It also meant there was no flexibility around check in/out or leaving bags. Overall a nice space, even if the road outside was quite noisy, but felt more like a hotel. Easy access to metro so getting into town was fine, and for what we paid, it did the trick nicely. Would only recommend for shorter stays, but happy with our stay.",en,mixed,1,en,mixed,1,en,mixed,1,en,mixed,0,True,False
+2025-09-21,1316657401713374852,653484006771947450,2024-12-21,"Pedro’s place is very cute and cozy. Nice sunny balcony for a coffee with side views to the river and access through a typical ribeira back street where time seems to have stoped. The flat had everything needed for a few days (at least for me) and it was well cleaned. Being in ribeira area, it’s very close to the river side but it is an uphill walk to the city centre, a nice one if you don’t mind walking. There are restaurants, bars and shops around. Only critic is that some details need attention as things get worn out! Overall 👌",en,mixed,0,en,mixed,0,en,positive,0,en,mixed,0,False,True
+2025-09-21,1213008217764387857,1044010890849157875,2024-07-31,"Great location, only wish.the the place had an AC unit. We had to keep the windows open and the bar down the street was noisy. It's a great location, public parking close by as well as tourist attractions.",en,mixed,1,en,mixed,1,en,positive,1,en,mixed,1,False,True
+2025-09-21,1479737272969313943,1390742292419730364,2025-08-03,"Beautiful and quiet apartment in one of the best locations in Porto, great restaurants, bars, bakeries and coffee shops nearby. Checking in and out was easy, and we walked pretty much everywhere. Everything is brand-new. The only downsides are that the AC doesn't reach the bed area (I asked if they had a fan but no one replied), and the steep angle of the staircase. We'd stay there again.",en,mixed,0,en,mixed,0,en,positive,0,en,mixed,0,False,True
+2025-09-21,703412699536475492,37598251,2022-08-28,"Fabio´s flat was very clean and very good located. It was a good choice. The only disadvantage was a noise in the building (doors, elevator) and from outside.",en,mixed,1,en,mixed,1,en,positive,0,en,mixed,1,False,True
+2025-09-21,1246264271414070060,28253365,2024-09-15,We stayed for 10 days and enjoyed every one of them. The location is perfect and the view unbeatable. The loft was exactly as described and very clean. The check-in and response to any of our needs was immediate. Would not hesitate to recommend it to any of our family or friends and definitely try to stay in this loft again when in town.,en,positive,0,en,positive,0,en,mixed,0,en,positive,0,False,True
+2025-09-21,907878488380486150,831791748334468935,2023-06-06,"Amazing location. Apartment is simple and very spacious. It’s true what other reviews said about the smell- in the morning it was strong - but it was only a night, so no problem.",en,mixed,1,en,mixed,1,en,positive,0,en,mixed,1,False,True
+2025-09-21,207075891,2440339,2017-10-28,"It is quite noisy, the sunsets are gorgeous but the view is not of a park- but tenements.",en,mixed,1,en,mixed,1,en,positive,1,en,negative,1,True,True
+2025-09-21,1450737804013408290,1399153882051022763,2025-06-24,"The apartment is nice but it seemed to me that the construction work had not yet been completed. There was hair under the bathroom cabinet, a wire coming from the street was tangled next to the bed as if it were an unfinished construction, a hole next to the exhaust fan and no curtains, since there are other apartments facing it less than 3 meters away, I felt like I had no privacy, something that could have been solved cheaply. For the price that was charged, I expected more.",en,mixed,1,en,mixed,1,en,positive,0,en,mixed,0,True,True
+2025-09-21,1504368401297482492,1370910324579457283,2025-09-06,"Would be amazing to have a small air conditionning in the house. Very hot if you keep the windows closed, but a lot of noise until late at night due to the location. But overall very nice stay!",en,mixed,0,en,mixed,0,en,positive,0,en,mixed,0,False,True
+2025-09-21,657768387816343014,35704995,2022-06-26,"Location great. Cleaning could be done better, the previous guest's dirty sheets had been left in the stairwell which was not very pleasant.. Showers quite dirty too. Good place for a bigger group, nice, big terrace and as i said, the location is perfect just next to jardím do Morro.",en,mixed,1,en,mixed,1,en,mixed,0,en,mixed,1,False,True
+2025-09-21,931701885419235173,592854324686346701,2023-07-09,"Everything went great. Nice and cosy apartment. The flexible check in made our lives so much easier! Jin was very nice and a great help. The bed was a bit too hard, but this was the only negative thing I could think of. Definitely recommend!",en,mixed,0,en,mixed,0,en,positive,0,en,mixed,0,False,True
+2025-09-21,1124540094456895010,24865381,2024-03-31,"Our stay at Andreia’s was okay, her apartment is in a very central location and it was easy to walk nearly anywhere. Andreia was a very responsive host and was available to help us when we had questions. However, the apartment was filled with many smells covered up by air fresheners (the bedroom smelled of mold, the fridge smelled of fish, etc.), it made it difficult to enjoy spending time at the airbnb. Another thing to note is the small hot water tank, we could only get through one very quick shower before running out of hot water. Also, the bed is very soft and the sheets are clearly very old and used which was not the most enjoyable. We did also have a situation where the breaker jumped from having too many things run at once, Andreia was helpful in getting this fixed but something to keep in mind.",en,mixed,1,en,mixed,1,en,mixed,0,en,mixed,1,False,True

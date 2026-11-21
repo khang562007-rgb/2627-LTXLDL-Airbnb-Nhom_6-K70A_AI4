@@ -260,7 +260,8 @@ def main():
     for snap, df in tables["listings"].items():
         cols = [ID] + [c for c in RULES if c in df.columns] + ["bathrooms_clean"]
         df[cols].to_csv(processed / f"listings_property_flags_{snap}.csv.gz",
-                        index=False, encoding="utf-8-sig")
+                        index=False, encoding="utf-8-sig",
+                        compression={"method": "gzip", "mtime": 0})
 
     rep = pd.DataFrame(report)
     rep.to_csv(ROOT / "data" / "interim" / "qa_parts" / "qa_report_property.csv", index=False, encoding="utf-8-sig")

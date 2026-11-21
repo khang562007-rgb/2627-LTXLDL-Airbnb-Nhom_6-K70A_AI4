@@ -165,7 +165,8 @@ def main():
         add("llm_sample_size", snap, len(rv), ex, f"đủ điều kiện vào mẫu LLM: {len(rv) - ex}")
 
         rv.drop(columns=[c for c in rv.columns if c.startswith("_")]).to_csv(
-            processed / f"reviews_flagged_{snap}.csv.gz", index=False, encoding="utf-8-sig")
+            processed / f"reviews_flagged_{snap}.csv.gz", index=False, encoding="utf-8-sig",
+            compression={"method": "gzip", "mtime": 0})
 
         # --- cờ review của listings nhóm ---
         lf, notes = flag_listings(ls, q)
@@ -173,7 +174,8 @@ def main():
                        ("reviews_inconsistent", "reviews_inconsistent"),
                        ("review_score_range", "review_score_range")]:
             add(r, snap, len(lf), lf[col].sum(), notes[r])
-        lf.to_csv(processed / f"listings_review_flags_{snap}.csv.gz", index=False, encoding="utf-8-sig")
+        lf.to_csv(processed / f"listings_review_flags_{snap}.csv.gz", index=False, encoding="utf-8-sig",
+                  compression={"method": "gzip", "mtime": 0})
 
     # --- giữa các mốc ---
     snaps = cfg["snapshots"]

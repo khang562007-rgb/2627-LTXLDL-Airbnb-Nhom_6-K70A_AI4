@@ -152,14 +152,22 @@ def eval_against_handlabel(hl, base, llm, out_dir):
     print("\n=== Đánh giá so với nhãn tay ===")
     print(summary.to_string(index=False))
 
-    mismatch_mask = pd.Series(False, index=df.index)
+    llm_mismatch = pd.Series(False, index=df.index)
     if llm is not None:
-        mismatch_mask |= (df["hand_sent"] != "") & df["llm_sent"].notna() & (df["hand_sent"] != df["llm_sent"])
-        mismatch_mask |= df["hand_comm"].notna() & df["llm_comm"].notna() & (df["hand_comm"] != df["llm_comm"])
-    df.loc[mismatch_mask].to_csv(out_dir / "eval_mismatches.csv", index=False, encoding="utf-8-sig")
+        llm_mismatch |= (df["hand_lang"] != "") & df["llm_lang"].notna() & (df["hand_lang"] != df["llm_lang"])
+        llm_mismatch |= (df["hand_sent"] != "") & df["llm_sent"].notna() & (df["hand_sent"] != df["llm_sent"])
+        llm_mismatch |= df["hand_comm"].notna() & df["llm_comm"].notna() & (df["hand_comm"] != df["llm_comm"])
+    base_mismatch = pd.Series(False, index=df.index)
+    if base is not None:
+        base_mismatch |= (df["hand_lang"] != "") & df["base_lang"].notna() & (df["hand_lang"] != df["base_lang"])
+        base_mismatch |= (df["hand_sent"] != "") & df["base_sent"].notna() & (df["hand_sent"] != df["base_sent"])
+        base_mismatch |= df["hand_comm"].notna() & df["base_comm"].notna() & (df["hand_comm"] != df["base_comm"])
+    df["llm_mismatch"] = llm_mismatch
+    df["base_mismatch"] = base_mismatch
+    df.loc[llm_mismatch | base_mismatch].to_csv(out_dir / "eval_mismatches.csv", index=False, encoding="utf-8-sig")
 
 
-def eval_cross_agreement(base, llm, out_dir):
+def eval_cross_agreement(base, llm, out_dir, write_mismatches=True):
     if base is None or llm is None:
         print("[SKIP] Thiếu baseline_reviews.csv hoặc k7_labels.csv để đối chiếu chéo.")
         return
@@ -189,9 +197,10 @@ def eval_cross_agreement(base, llm, out_dir):
 
     res = pd.DataFrame(rows)
     res.to_csv(out_dir / "eval_baseline_vs_llm.csv", index=False, encoding="utf-8-sig")
-    m[(m["base_sent"] != m["llm_sent"]) | (m["base_comm"] != m["llm_comm"])].to_csv(
-        out_dir / "eval_mismatches.csv", index=False, encoding="utf-8-sig"
-    )
+    if write_mismatches:
+        m[(m["base_sent"] != m["llm_sent"]) | (m["base_comm"] != m["llm_comm"])].to_csv(
+            out_dir / "eval_mismatches.csv", index=False, encoding="utf-8-sig"
+        )
     print("\n=== Đối chiếu chéo Baseline vs LLM ===")
     print(res.to_string(index=False))
 
@@ -218,6 +227,7 @@ def main():
     base = load_baseline(base_path)
     llm = load_llm(llm_path, community)
 
+    ran_handlabel = False
     if hl_path.exists():
         hl = pd.read_csv(hl_path, dtype={"id": str})
         has_filled = any(
@@ -226,15 +236,16 @@ def main():
         )
         if has_filled:
             eval_against_handlabel(hl, base, llm, out_dir)
-            return
-        print(f"[INFO] File {hl_path} tồn tại nhưng chưa điền nhãn tay (hand_*).")
+            ran_handlabel = True
+        else:
+            print(f"[INFO] File {hl_path} tồn tại nhưng chưa điền nhãn tay (hand_*).")
     else:
         print(
             f"[INFO] Chưa có file nhãn tay {hl_path}. "
             "Tạo mẫu bằng: python src/kpi_k7_community_complaint.py configs/porto.yaml data/processed/reviews_valid.csv data/processed --handlabel"
         )
 
-    eval_cross_agreement(base, llm, out_dir)
+    eval_cross_agreement(base, llm, out_dir, write_mismatches=not ran_handlabel)
 
 
 if __name__ == "__main__":

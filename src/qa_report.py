@@ -155,12 +155,16 @@ def kpi_section(proc):
         if path.name.startswith("kpi_k05_"):
             rev = city[city.kpi_name == "estimated_revenue"].set_index("snapshot")
             outl = city[city.kpi_name == "price_outlier_revenue"].set_index("snapshot")
+            outl_n = city[city.kpi_name == "price_outlier_listings"].set_index("snapshot")
             both = rev.index.intersection(outl.index)
             if len(both):
                 s = rev.loc[both].copy()
                 s["kpi_name"] = "estimated_revenue_if_drop_price_outlier"
+                s["n_before_qa"] = rev.loc[both, "n_used"]
+                if len(both.intersection(outl_n.index)) == len(both):
+                    s["n_after_qa"] = rev.loc[both, "n_used"] - outl_n.loc[both, "value"]
                 s["value_before_qa"] = rev.loc[both, "value"]
-                s["value_after_qa"] = rev.loc[both, "value"] - outl.loc[both, "value"]
+                s["value_after_qa"] = (rev.loc[both, "value"] - outl.loc[both, "value"]).round(2)
                 s["note"] = "độ nhạy: QA chỉ gắn cờ price_outlier (giữ lại); dòng này cho thấy KPI nếu loại chúng"
                 out.append(s.reset_index())
     if not out:
@@ -186,7 +190,9 @@ def main():
 
     rep = pd.concat([rule_section(parts_dir, proc), rows_section(cfg, proc, snaps), kpi_section(proc)],
                     ignore_index=True)
-    rep = rep[rep["snapshot"].astype(str).isin(snaps)]
+    snap_pairs = {f"{a}->{b}" for a, b in zip(snaps, snaps[1:])}
+    valid_snaps = set(snaps) | snap_pairs
+    rep = rep[rep["snapshot"].astype(str).isin(valid_snaps)]
     for c in COLS:
         if c not in rep:
             rep[c] = np.nan
