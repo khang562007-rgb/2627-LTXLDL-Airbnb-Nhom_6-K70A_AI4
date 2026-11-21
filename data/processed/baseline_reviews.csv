@@ -1,0 +1,44 @@
+review_id,language,sentiment,aspects_positive,aspects_negative,status,lang_confidence,pos_score,neg_score
+900000001,en,positive,"[""sạch sẽ"", ""chủ nhà"", ""tiện nghi"", ""tổng thể trải nghiệm""]",[],ok,1.0,8.0,0.0
+900000002,en,mixed,"[""vị trí"", ""chủ nhà""]","[""tiện nghi"", ""độ ồn""]",ok,1.0,2.0,2.0
+900000003,en,negative,[],"[""sạch sẽ"", ""chủ nhà"", ""dịch vụ"", ""tổng thể trải nghiệm""]",ok,1.0,0.0,8.0
+900000004,en,negative,[],"[""sạch sẽ"", ""tiện nghi""]",ok,1.0,0.0,2.0
+900000005,en,positive,"[""giá trị""]",[],ok,1.0,2.0,0.0
+900000006,en,positive,"[""vị trí"", ""độ ồn"", ""an toàn"", ""dịch vụ"", ""tổng thể trải nghiệm""]",[],ok,1.0,5.0,0.0
+900000007,en,positive,"[""tiện nghi"", ""dịch vụ""]",[],ok,1.0,3.0,0.0
+900000008,en,,[],[],no_signal,1.0,0.0,0.0
+900000009,en,negative,[],"[""tiện nghi""]",ok,1.0,1.0,3.0
+900000010,en,negative,[],"[""giá trị"", ""độ chính xác với mô tả listing""]",ok,1.0,0.0,2.0
+900000011,,,[],[],excluded_auto,,,
+900000012,en,positive,"[""chủ nhà""]",[],ok,1.0,6.0,0.0
+900000013,es,positive,"[""vị trí"", ""sạch sẽ"", ""chủ nhà""]",[],ok,1.0,6.0,0.0
+900000014,es,negative,[],"[""tiện nghi"", ""độ ồn""]",ok,1.0,0.0,2.0
+900000015,es,positive,"[""giá trị"", ""tổng thể trải nghiệm""]",[],ok,1.0,4.0,0.0
+900000016,es,mixed,"[""vị trí""]",[],ok,1.0,2.0,2.0
+900000017,es,negative,[],"[""sạch sẽ"", ""độ ồn"", ""tổng thể trải nghiệm""]",ok,1.0,0.0,7.0
+900000018,es,,[],[],excluded_short_no_signal,1.0,0.0,0.0
+900000019,fr,positive,"[""sạch sẽ"", ""chủ nhà"", ""độ ồn"", ""tổng thể trải nghiệm""]",[],ok,1.0,7.0,0.0
+900000020,fr,negative,[],"[""sạch sẽ"", ""độ ồn"", ""tổng thể trải nghiệm""]",ok,1.0,0.0,4.0
+900000021,fr,mixed,"[""vị trí""]","[""tiện nghi""]",ok,1.0,2.0,2.0
+900000022,fr,positive,"[""chủ nhà"", ""độ chính xác với mô tả listing"", ""tổng thể trải nghiệm""]",[],ok,1.0,3.0,0.0
+900000023,fr,positive,"[""vị trí"", ""tiện nghi""]",[],ok,1.0,3.0,0.0
+900000024,und,,[],[],language_uncertain,0.857,,
+900000025,de,positive,"[""vị trí"", ""sạch sẽ"", ""chủ nhà"", ""tổng thể trải nghiệm""]",[],ok,1.0,6.0,0.0
+900000026,de,negative,[],"[""sạch sẽ"", ""độ ồn""]",ok,1.0,0.0,4.0
+900000027,de,mixed,"[""vị trí""]","[""tiện nghi""]",ok,1.0,2.0,2.0
+900000028,de,positive,"[""vị trí"", ""chủ nhà"", ""độ ồn""]",[],ok,1.0,5.0,0.0
+900000029,de,positive,"[""tổng thể trải nghiệm""]",[],ok,1.0,1.0,0.0
+900000030,pt,positive,"[""vị trí"", ""sạch sẽ"", ""chủ nhà"", ""tổng thể trải nghiệm""]",[],ok,1.0,6.0,0.0
+900000031,pt,negative,[],"[""sạch sẽ"", ""độ ồn"", ""tổng thể trải nghiệm""]",ok,1.0,0.0,7.0
+900000032,pt,positive,"[""vị trí""]",[],ok,1.0,2.0,1.0
+900000033,pt,positive,"[""chủ nhà"", ""tiện nghi""]",[],ok,1.0,4.0,0.0
+900000034,pt,,[],[],no_signal,1.0,0.0,0.0
+900000035,it,,[],[],unsupported_language,1.0,,
+900000036,nl,,[],[],unsupported_language,1.0,,
+900000037,,,[],[],excluded_empty,,,
+900000038,,,[],[],excluded_empty,,,
+900000039,,,[],[],excluded_no_letters,,,
+900000040,und,,[],[],language_uncertain,0.998,,
+900000041,und,,[],[],language_uncertain,1.0,,
+900000042,en,,[],[],excluded_short_no_signal,0.857,0.0,0.0
+900000043,,,[],[],excluded_auto,,,

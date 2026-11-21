@@ -1,9 +1,17 @@
+import argparse
 from pathlib import Path
 import pandas as pd
 import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
-cfg = yaml.safe_load(open(ROOT / "configs" / "porto.yaml", encoding="utf-8"))
+ap = argparse.ArgumentParser(description="Lọc dữ liệu thô theo mẫu nhóm")
+ap.add_argument("--config", default="configs/porto.yaml", help="Đường dẫn file cấu hình YAML")
+args = ap.parse_args()
+
+cfg_path = Path(args.config)
+if not cfg_path.is_absolute():
+    cfg_path = ROOT / cfg_path
+cfg = yaml.safe_load(open(cfg_path, encoding="utf-8"))
 
 DATA = ROOT / cfg["paths"]["raw_root"]
 OUT = ROOT / cfg["paths"]["interim"]

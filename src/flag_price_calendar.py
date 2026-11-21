@@ -1,194 +1,137 @@
-"""
-Thứ tự chạy, từ gốc repo:
-    python src/download.py                                            # tải data/raw/<mốc>/...
-    python src/flag_price_calendar.py --config configs/porto.yaml     # lọc 1.000 listing + gắn cờ
+"""QA cờ giá và calendar trên các bảng đã lọc; báo cáo theo schema của qa.py.
 
+Chạy từ gốc repo: python src/flag_price_calendar.py [--config configs/porto.yaml]
 """
 import argparse
+import sys
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from src.audit_flags import audit_table, check_collisions, sample_flagged
 import pandas as pd
 import yaml
-
-CHUNKSIZE = 1_000_000          # calendar thô có hàng triệu dòng nên đọc theo khối
-
-
-# ---------- đọc và lọc theo ids ----------
-def read_listings(path, id_set):
-    lst = pd.read_csv(path, usecols=["id", "price", "minimum_nights", "availability_365"],
-                      dtype={"id": "str", "price": "str"})
-    return lst[lst["id"].isin(id_set)].reset_index(drop=True)
-
-
-def read_calendar(path, id_set):
-    parts = []
-    for chunk in pd.read_csv(path, usecols=["listing_id", "date", "available", "minimum_nights", "maximum_nights"],
-                             dtype={"listing_id": "str"}, chunksize=CHUNKSIZE):
-        parts.append(chunk[chunk["listing_id"].isin(id_set)])
-    return pd.concat(parts, ignore_index=True)
-
-
-# ---------- cờ trên listings ----------
-def price_type(df):
-    file = df.copy()
-    file["flagged_price_type"] = file["price"].str.contains(r"[^0-9.\-]", na=False)
-    file["price_clean"] = pd.to_numeric(file["price"].str.replace(r"[^0-9.\-]", "", regex=True), errors="coerce")
-    return file
-
-
-def price_missing(df):
-    file = df.copy()
-    file["flagged_price_missing"] = file["price_clean"].isna()
-    return file
+RULES = {
+    "price_type": ("flag", "listings", "price chứa ký tự không thuộc định dạng số", "Sai kiểu giá", "Tạo price_clean, giữ nguyên price"),
+    "price_missing": ("flag", "listings", "price thiếu hoặc không parse được", "Thiếu giá", "Gắn cờ"),
+    "price_outlier": ("flag", "listings", "price <= 0 hoặc vượt Q3 + k*IQR", "Giá ngoại lệ", "Gắn cờ"),
+    "min_nights_outlier": ("flag", "listings", "minimum_nights vượt ngưỡng cấu hình", "Giá trị lưu trú bất thường", "Gắn cờ"),
+    "long_stay_listing": ("flag", "listings", "minimum_nights >= long_stay_threshold", "Listing thiên về lưu trú dài hạn", "Gắn cờ"),
+    "availability_out_of_range": ("flag", "listings", "availability_365 ngoài miền cấu hình", "Số ngày sẵn sàng không hợp lệ", "Gắn cờ"),
+    "price_jump": ("flag", "listings", "giá hợp lệ tăng/giảm quá price_jump_ratio so với mốc trước", "Giá biến động mạnh giữa các mốc", "Gắn cờ"),
+    "available_type": ("flag", "calendar", "available không thuộc t/f", "Sai kiểu khả dụng", "Gắn cờ"),
+    "calendar_dup_key": ("flag", "calendar", "trùng khóa (listing_id, date)", "Khóa ngày trùng", "Gắn cờ"),
+    "calendar_days_wrong": ("flag", "calendar", "số ngày khác expected_days", "Chuỗi ngày không đủ hoặc thừa", "Gắn cờ theo listing_id"),
+    "cal_min_nights_outlier": ("flag", "calendar", "minimum_nights vượt ngưỡng cấu hình", "Giá trị lưu trú bất thường", "Gắn cờ"),
+    "cal_max_nights_outlier": ("flag", "calendar", "maximum_nights vượt ngưỡng cấu hình", "Giá trị lưu trú bất thường", "Gắn cờ"),
+    "nights_inconsistent": ("flag", "calendar", "maximum_nights < minimum_nights", "Mâu thuẫn số đêm", "Gắn cờ"),
+}
+LISTING_RULES = list(RULES)[:7]
+CALENDAR_ROW_RULES = [
+    "available_type",
+    "calendar_dup_key",
+    "cal_min_nights_outlier",
+    "cal_max_nights_outlier",
+    "nights_inconsistent",
+]
+report = []
 
 
-def price_outlier(df, k):
-    file = df.copy()
-    valid = file["price_clean"].where(file["price_clean"] > 0)   # chỉ giữ giá dương để tính Q1, Q3
-    q1, q3 = valid.quantile(0.25), valid.quantile(0.75)
-    upper = q3 + k * (q3 - q1)
-    file["flagged_price_outlier"] = (file["price_clean"] <= 0) | (file["price_clean"] > upper)
-    return file
+def add(rule, snap, total, flagged, note=""):
+    kind, table, cond, why, act = RULES[rule]
+    report.append(dict(rule=rule, kind=kind, table=table, snapshot=snap,
+                       condition=cond, reason=why, action=act,
+                       rows_total=int(total), rows_flagged=int(flagged), note=note))
 
 
-def min_nights_outlier(df, cap):
-    file = df.copy()
-    file["flagged_min_nights_outlier"] = file["minimum_nights"] > cap
-    return file
+def find_file(folder, prefix, snap):
+    for ext in (".csv.gz", ".csv"):
+        path = folder / f"{prefix}_{snap}{ext}"
+        if path.exists():
+            return path
+    raise FileNotFoundError(f"Thiếu {prefix}_{snap}.csv(.gz) trong {folder}; hãy chạy filter_all.py trước")
 
 
-def long_stay_listing(df, threshold):
-    file = df.copy()
-    file["flagged_long_stay_listing"] = file["minimum_nights"] >= threshold
-    return file
+def flag_listings(df, q, last_price):
+    out = df.copy()
+    raw = out["price"].astype("string")
+    out["price_type"] = raw.notna() & raw.str.contains(r"[^0-9.\-]", na=False)
+    out["price_clean"] = pd.to_numeric(raw.str.replace(r"[^0-9.\-]", "", regex=True), errors="coerce")
+    out["price_missing"] = out["price_clean"].isna()
+    positive = out["price_clean"].where(out["price_clean"] > 0)
+    q1, q3 = positive.quantile([.25, .75])
+    upper = q3 + q.get("price_iqr_k", 2) * (q3 - q1)
+    out["price_outlier"] = (out["price_clean"] <= 0) | (out["price_clean"] > upper)
+    minimum = pd.to_numeric(out["minimum_nights"], errors="coerce")
+    out["min_nights_outlier"] = minimum > q.get("min_nights_cap", 365)
+    out["long_stay_listing"] = minimum >= q.get("long_stay_threshold", 30)
+    available = pd.to_numeric(out["availability_365"], errors="coerce")
+    out["availability_out_of_range"] = ~available.between(q.get("availability_min", 0), q.get("availability_max", 365))
+    if last_price is None:
+        out["price_jump"] = False
+    else:
+        prior = out["id"].map(last_price)
+        ratio = out["price_clean"] / prior
+        limit = q.get("price_jump_ratio", 2)
+        out["price_jump"] = (ratio > limit) | (ratio < 1 / limit)
+    return out
 
 
-def availability_out_of_range(df, low, high):
-    file = df.copy()
-    file["flagged_availability_out_of_range"] = (file["availability_365"] < low) | (file["availability_365"] > high)
-    return file
+def flag_calendar(df, ids, q):
+    out = df.copy()
+    available = out["available"].astype("string").str.lower()
+    out["available_type"] = ~available.isin(["t", "f"])
+    out["calendar_dup_key"] = out.duplicated(["listing_id", "date"], keep=False)
+    minimum = pd.to_numeric(out["minimum_nights"], errors="coerce")
+    maximum = pd.to_numeric(out["maximum_nights"], errors="coerce")
+    out["cal_min_nights_outlier"] = minimum > q.get("min_nights_cap", 365)
+    out["cal_max_nights_outlier"] = maximum > q.get("max_nights_cap", 1125)
+    out["nights_inconsistent"] = maximum < minimum
+    counts = out.groupby("listing_id")["date"].nunique().reindex(ids).fillna(0).astype(int)
+    days = pd.DataFrame({"listing_id": ids, "n_days": counts.to_numpy()})
+    days["calendar_days_wrong"] = days["n_days"].ne(q.get("expected_days", 365))
+    return out, days
 
 
-def price_jump(df, last_price, ratio):
-    """last_price: Series (index = id) giá hợp lệ gần nhất của mỗi listing ở các mốc trước."""
-    file = df.copy()
-    if last_price is None:                # mốc đầu tiên: chưa có mốc trước để so
-        file["flagged_price_jump"] = False
-        return file
-    now = file["price_clean"].where(file["price_clean"] > 0)
-    before = file["id"].map(last_price)
-    r = now / before
-    file["flagged_price_jump"] = (r > ratio) | (r < 1 / ratio)
-    return file
-
-
-# ---------- cờ trên calendar ----------
-def calendar_available_type(df):
-    file = df.copy()
-    file["flagged_available_type"] = (file["available"] != "t") & (file["available"] != "f")
-    return file
-
-
-def calendar_dup_key(df):
-    file = df.copy()
-    file["flagged_dup_key"] = file.duplicated(subset=["listing_id", "date"], keep=False)
-    return file
-
-
-def calendar_days_wrong(df, ids, expected_days):
-    n_days = df.groupby("listing_id")["date"].nunique().reindex(ids).fillna(0).astype(int)
-    return pd.DataFrame({
-        "listing_id": ids,
-        "n_days": n_days.values,
-        "flagged_days_wrong": (n_days != expected_days).values,
-    })
-
-def calendar_min_nights_outlier(df, cap):
-    file = df.copy()
-    file["flagged_cal_min_nights_outlier"] = file["minimum_nights"] > cap
-    return file
-
-
-def calendar_max_nights_outlier(df, cap):
-    file = df.copy()
-    file["flagged_cal_max_nights_outlier"] = file["maximum_nights"] > cap
-    return file
-
-
-def calendar_nights_inconsistent(df):
-    file = df.copy()
-    file["flagged_nights_inconsistent"] = file["maximum_nights"] < file["minimum_nights"]
-    return file
-# ---------- pipeline ----------
-def check_inputs(cfg):
-    paths = [cfg["ids"]]
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--config", default="configs/porto.yaml")
+    cfg = yaml.safe_load((ROOT / ap.parse_args().config).open(encoding="utf-8"))
+    q = cfg.get("qa", {}).get("price_calendar", {})
+    q = {**q, "expected_days": cfg.get("expected_days", 365)}
+    interim, processed = ROOT / cfg["paths"]["interim"], ROOT / cfg["paths"]["processed"]
+    processed.mkdir(parents=True, exist_ok=True)
+    (ROOT / "reports").mkdir(exist_ok=True)
+    report.clear()
+    last_price = None
+    ids_path = ROOT / cfg["sample"]["listing_ids_path"]
+    ids_frame = pd.read_csv(ids_path, dtype=str)
+    ids_col = "listing_id" if "listing_id" in ids_frame else "id"
+    ids = ids_frame[ids_col].dropna().drop_duplicates().tolist()
     for snap in cfg["snapshots"]:
-        paths.append(cfg["listings_file"].format(snap=snap))
-        paths.append(cfg["calendar_file"].format(snap=snap))
-    missing = [p for p in paths if not Path(p).exists()]
-    if missing:
-        raise FileNotFoundError("Thieu file dau vao (chay src/download.py truoc, hoac kiem tra duong dan trong config):\n  "
-                                + "\n  ".join(missing))
-
-
-def run(cfg, out_dir="data/processed", report_dir="reports"):
-    check_inputs(cfg)
-    ids = pd.read_csv(cfg["ids"], dtype={"listing_id": "str"})["listing_id"].drop_duplicates().tolist()
-    id_set = set(ids)
-    Path(out_dir).mkdir(parents=True, exist_ok=True)
-    Path(report_dir).mkdir(parents=True, exist_ok=True)
-
-    rows = []
-    last_price = None                              # giá hợp lệ gần nhất của mỗi listing (cho price_jump)
-    for snap in cfg["snapshots"]:
-        # --- listings: đọc một lần, lọc theo ids ---
-        lst = read_listings(cfg["listings_file"].format(snap=snap), id_set)
-        lst = price_type(lst)
-        lst = price_missing(lst)
-        lst = price_outlier(lst, cfg["price_iqr_k"])
-        lst = min_nights_outlier(lst, cfg["min_nights_cap"])
-        lst = long_stay_listing(lst, cfg["long_stay_threshold"])
-        lst = availability_out_of_range(lst, cfg["availability_min"], cfg["availability_max"])
-        lst = price_jump(lst, last_price, cfg["price_jump_ratio"])
-        valid = lst.drop_duplicates("id").set_index("id")["price_clean"]
-        valid = valid.where(valid > 0).dropna()
-        last_price = valid if last_price is None else valid.combine_first(last_price)
-
-        # --- calendar: đọc một lần, lọc theo ids, lưu bản đã lọc ---
-        cal = read_calendar(cfg["calendar_file"].format(snap=snap), id_set)
-        cal.to_csv(Path(out_dir) / f"calendar_{snap}.csv", index=False)
-        cal = calendar_available_type(cal)
-        cal = calendar_dup_key(cal)
-        cal = calendar_min_nights_outlier(cal, cfg["min_nights_cap"])
-        cal = calendar_max_nights_outlier(cal, cfg["max_nights_cap"])
-        cal = calendar_nights_inconsistent(cal)
-        days = calendar_days_wrong(cal, ids, cfg["expected_days"])
-
-        # --- cảnh báo ---
-        n_not_found = len(id_set - set(lst["id"]))
-        if n_not_found:
-            print(f"[CANH BAO] {snap}: {n_not_found}/{len(ids)} id khong co trong listings cua mot nay")
-        if lst["price_clean"].isna().all():
-            print(f"[CANH BAO] {snap}: khong co gia nao, cac co gia khong danh gia duoc o mot nay")
-
-        # --- ghi kết quả ---
-        lst.to_csv(Path(out_dir) / f"flags_listings_{snap}.csv", index=False)
-        days.to_csv(Path(out_dir) / f"flags_calendar_{snap}.csv", index=False)
-        row_flags = [c for c in cal.columns if c.startswith("flagged_")]
-        bad_rows = cal[cal[row_flags].any(axis=1)]        
-        bad_rows.to_csv(Path(out_dir) / f"flags_calendar_rows_{snap}.csv", index=False)
-        counts = {c: int(t[c].sum()) for t in (lst, cal, days) for c in t.columns if c.startswith("flagged_")}
-        rows.append({"snapshot": snap, "n_listings": len(lst), "n_calendar_rows": len(cal), **counts})
-
-    summary = pd.DataFrame(rows)
-    summary.to_csv(Path(report_dir) / "flags_summary.csv", index=False)
-    print(summary.T.to_string(header=False))
-    return summary
+        listings = pd.read_csv(find_file(interim, "listings", snap), dtype={"id": str}, low_memory=False)
+        listings = flag_listings(listings, q, last_price)
+        for rule in LISTING_RULES:
+            add(rule, snap, len(listings), listings[rule].sum())
+        current = listings.drop_duplicates("id").set_index("id")["price_clean"]
+        current = current.where(current > 0).dropna()
+        last_price = current if last_price is None else current.combine_first(last_price)
+        cal = pd.read_csv(find_file(interim, "calendar", snap), dtype={"listing_id": str}, low_memory=False)
+        cal, days = flag_calendar(cal, ids, q)
+        for rule in CALENDAR_ROW_RULES:
+            add(rule, snap, len(cal), cal[rule].sum())
+        add("calendar_days_wrong", snap, len(days), days["calendar_days_wrong"].sum())
+        listings[["id"] + LISTING_RULES + ["price_clean"]].to_csv(
+            processed / f"listings_price_flags_{snap}.csv.gz", index=False, encoding="utf-8-sig")
+        cal[["listing_id", "date"] + CALENDAR_ROW_RULES].to_csv(
+            processed / f"calendar_row_flags_{snap}.csv.gz", index=False, encoding="utf-8-sig")
+        days.to_csv(processed / f"calendar_listing_flags_{snap}.csv", index=False, encoding="utf-8-sig")
+    rep = pd.DataFrame(report)
+    rep.to_csv(ROOT / "reports" / "qa_report_price_calendar.csv", index=False, encoding="utf-8-sig")
+    print(rep[["rule", "snapshot", "rows_total", "rows_flagged"]].to_string(index=False))
 
 
 if __name__ == "__main__":
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--config", required=True)
-    args = ap.parse_args()
-    with open(args.config, encoding="utf-8") as f:
-        run(yaml.safe_load(f))
+    main()

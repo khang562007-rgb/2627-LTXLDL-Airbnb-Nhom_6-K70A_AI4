@@ -1,157 +1,114 @@
+"""QA cờ host và location trên listings đã lọc; tạo báo cáo cùng schema với qa.py.
+
+Chạy từ gốc repo: python src/flag_host_locations.py [--config configs/porto.yaml]
+"""
 import argparse
+import sys
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from src.audit_flags import audit_table, check_collisions, sample_flagged
 import pandas as pd
 import yaml
+RULES = {
+    "dup_id_in_snapshot": ("flag", "listings", "id xuất hiện từ 2 lần trở lên", "Khóa listing trùng", "Gắn cờ"),
+    "host_id_missing": ("flag", "listings", "host_id bị thiếu", "Không xác định được chủ nhà", "Gắn cờ"),
+    "host_count_inconsistent": ("flag", "listings", "số listing mẫu của host lớn hơn host_listings_count", "Thông tin số lượng không khớp", "Gắn cờ"),
+    "host_since_invalid": ("flag", "listings", "host_since thiếu hoặc sau last_scraped", "Mốc thời gian không hợp lệ", "Gắn cờ"),
+    "host_rate_type": ("flag", "listings", "host_response_rate có giá trị nhưng không parse được", "Sai định dạng tỷ lệ phản hồi", "Gắn cờ; giữ giá trị gốc"),
+    "coord_missing_or_invalid": ("flag", "listings", "latitude/longitude thiếu hoặc ngoài miền hợp lệ", "Toạ độ không hợp lệ", "Gắn cờ"),
+    "coord_outside_porto": ("flag", "listings", "toạ độ ngoài khung Porto cấu hình", "Vị trí ngoài khu vực nghiên cứu", "Gắn cờ"),
+    "coord_outside_area": ("flag", "listings", "toạ độ ngoài khung analysis_area cấu hình", "Khu vực phân tích không khớp", "Gắn cờ"),
+    "neighbourhood_missing_or_unknown": ("flag", "listings", "neighbourhood_cleansed bị thiếu", "Không phân loại được khu vực", "Gắn cờ"),
+}
+report = []
 
-BOOL_COLS = ["host_is_superhost", "instant_bookable", "host_has_profile_pic", "host_identity_verified"]
-BOOL_MAP = {"t": True, "f": False, "true": True, "false": False}
-DEFAULT_BBOX = [41.10, 41.25, -8.70, -8.50]
-DEFAULT_UNKNOWN = ["", "unknown", "n/a", "na", "none", "nan"]
-NEEDED = {"id", "host_id", "host_listings_count", "host_since", "last_scraped", "host_response_rate",
-          "latitude", "longitude", "neighbourhood_cleansed", *BOOL_COLS}
+
+def add(rule, snap, total, flagged, note=""):
+    kind, table, cond, why, act = RULES[rule]
+    report.append(dict(rule=rule, kind=kind, table=table, snapshot=snap,
+                       condition=cond, reason=why, action=act,
+                       rows_total=int(total), rows_flagged=int(flagged), note=note))
 
 
-def read_listings(folder, snap, need):
+def find_file(folder, snap):
     for ext in (".csv.gz", ".csv"):
-        path = Path(folder) / f"listings_{snap}{ext}"
+        path = folder / f"listings_{snap}{ext}"
         if path.exists():
-            break
+            return path
+    raise FileNotFoundError(f"Thiếu listings_{snap}.csv(.gz) trong {folder}; hãy chạy filter_all.py trước")
+
+
+def _bounds_mask(df, bounds):
+    lat = pd.to_numeric(df.get("latitude"), errors="coerce")
+    lon = pd.to_numeric(df.get("longitude"), errors="coerce")
+    return ~lat.between(bounds[0], bounds[1]) | ~lon.between(bounds[2], bounds[3])
+
+
+def flag_host_location(df, q):
+    """Trả về bản sao có cờ; cột nguồn không bị sửa."""
+    out = df.copy()
+    out["dup_id_in_snapshot"] = out["id"].duplicated(keep=False)
+    out["host_id_missing"] = out["host_id"].isna()
+    declared = pd.to_numeric(out["host_listings_count"], errors="coerce")
+    sample_count = out["host_id"].map(out["host_id"].value_counts())
+    out["host_count_inconsistent"] = sample_count.gt(declared).fillna(False)
+    since = pd.to_datetime(out["host_since"], errors="coerce")
+    scraped = pd.to_datetime(out["last_scraped"], errors="coerce")
+    out["host_since_invalid"] = since.isna() | (since > scraped)
+    rate = out["host_response_rate"].astype("string").str.replace("%", "", regex=False).str.strip()
+    rate_clean = pd.to_numeric(rate, errors="coerce")
+    out["host_rate_type"] = out["host_response_rate"].notna() & rate_clean.isna()
+    lat = pd.to_numeric(out["latitude"], errors="coerce")
+    lon = pd.to_numeric(out["longitude"], errors="coerce")
+    out["coord_missing_or_invalid"] = ~lat.between(-90, 90) | ~lon.between(-180, 180)
+    porto = q.get("porto_bounds", [41.10, 41.25, -8.70, -8.50])
+    out["coord_outside_porto"] = _bounds_mask(out, porto)
+    bounds = q.get("area_bounds", {})
+    if bounds and "analysis_area" in out.columns:
+        b_df = pd.DataFrame.from_dict(bounds, orient="index", columns=["min_lat", "max_lat", "min_lon", "max_lon"])
+        mapped = out[["analysis_area"]].join(b_df, on="analysis_area")
+        in_area = (
+            lat.between(mapped["min_lat"], mapped["max_lat"])
+            & lon.between(mapped["min_lon"], mapped["max_lon"])
+        )
+        out["coord_outside_area"] = ~in_area
     else:
-        raise FileNotFoundError(f"Thieu listings_{snap}.csv(.gz) trong {folder} - can chay buoc loc truoc")
-    lst = pd.read_csv(path, dtype={"id": "str", "host_id": "str"}, low_memory=False,
-                      usecols=lambda c: c in need)
-    missing = need - set(lst.columns)
-    if missing:
-        raise ValueError(f"{path.name} thieu cot: {sorted(missing)}")
-    return lst
+        out["coord_outside_area"] = False
+    out["neighbourhood_missing_or_unknown"] = out["neighbourhood_cleansed"].isna()
+    return out
 
 
-def dup_id(df):
-    file = df.copy()
-    file["flagged_dup_id"] = file["id"].duplicated(keep=False)
-    return file
-
-
-def host_id_missing(df):
-    file = df.copy()
-    file["flagged_host_id_missing"] = file["host_id"].isna()
-    return file
-
-
-def host_count_inconsistent(df):
-    file = df.copy()
-    declared = pd.to_numeric(file["host_listings_count"], errors="coerce")
-    in_sample = file.groupby("host_id")["id"].transform("nunique")    # host_id thiếu => NaN => không cờ
-    file["flagged_host_count_inconsistent"] = in_sample > declared
-    return file
-
-
-def host_since_invalid(df):
-    file = df.copy()
-    since = pd.to_datetime(file["host_since"], errors="coerce")
-    scraped = pd.to_datetime(file["last_scraped"], errors="coerce")
-    file["flagged_host_since_invalid"] = since.isna() | (since > scraped)
-    return file
-
-
-def response_rate(df):
-    file = df.copy()
-    rate = pd.to_numeric(file["host_response_rate"].astype(str).str.replace("%", "", regex=False).str.strip(),
-                         errors="coerce")
-    file["host_response_rate_clean"] = rate / 100
-    file["flagged_host_rate_type"] = file["host_response_rate"].notna() & rate.isna()
-    return file
-
-
-def bool_clean(df):
-    file = df.copy()
-    for col in BOOL_COLS:
-        file[f"{col}_clean"] = file[col].astype(str).str.lower().map(BOOL_MAP)
-    return file
-
-
-def _coords(df):
-    return pd.to_numeric(df["latitude"], errors="coerce"), pd.to_numeric(df["longitude"], errors="coerce")
-
-
-def coord_invalid(df):
-    file = df.copy()
-    lat, lon = _coords(file)
-    file["flagged_coord_invalid"] = ~(lat.between(-90, 90) & lon.between(-180, 180))
-    return file
-
-
-def coord_outside_porto(df, bbox):
-    file = df.copy()
-    lat, lon = _coords(file)
-    inside = lat.between(bbox[0], bbox[1]) & lon.between(bbox[2], bbox[3])
-    file["flagged_coord_outside_porto"] = lat.notna() & lon.notna() & ~inside
-    return file
-
-
-def coord_outside_area(df, area_bounds, area_col):
-    file = df.copy()
-    lat, lon = _coords(file)
-    bounds = pd.DataFrame.from_dict(area_bounds, orient="index", columns=["min_lat", "max_lat", "min_lon", "max_lon"])
-    b = bounds.reindex(file[area_col])
-    b.index = file.index
-    mapped = b["min_lat"].notna()
-    inside = (lat >= b["min_lat"]) & (lat <= b["max_lat"]) & (lon >= b["min_lon"]) & (lon <= b["max_lon"])
-    file["flagged_area_unmapped"] = ~mapped
-    file["flagged_coord_outside_area"] = mapped & lat.notna() & lon.notna() & ~inside
-    return file
-
-
-def neighbourhood_missing(df, unknown):
-    file = df.copy()
-    nb = file["neighbourhood_cleansed"]
-    file["flagged_neighbourhood_missing"] = nb.isna() | nb.astype(str).str.strip().str.lower().isin(unknown)
-    return file
-
-
-def run(cfg, interim=None, out_dir="data/processed", report_dir="reports"):
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--config", default="configs/porto.yaml")
+    cfg = yaml.safe_load((ROOT / ap.parse_args().config).open(encoding="utf-8"))
     q = cfg.get("qa", {}).get("host", {})
-    interim = interim or cfg["paths"]["interim"]
-    bbox = q.get("porto_bbox", DEFAULT_BBOX)
-    area_bounds, area_col = q.get("area_bounds"), q.get("area_col", "analysis_area")
-    unknown = {str(u).lower() for u in q.get("unknown_neighbourhoods", DEFAULT_UNKNOWN)}
-    need = NEEDED | ({area_col} if area_bounds else set())
-    if not area_bounds:
-        print("[LUU Y] Chua co qa.host.area_bounds trong config: bo qua kiem tra toa do theo khu")
-    Path(out_dir).mkdir(parents=True, exist_ok=True)
-    Path(report_dir).mkdir(parents=True, exist_ok=True)
-
-    rows = []
+    interim, processed = ROOT / cfg["paths"]["interim"], ROOT / cfg["paths"]["processed"]
+    processed.mkdir(parents=True, exist_ok=True)
+    (ROOT / "reports").mkdir(exist_ok=True)
+    report.clear()
     for snap in cfg["snapshots"]:
-        lst = read_listings(interim, snap, need)
-        lst = dup_id(lst)
-        lst = host_id_missing(lst)
-        lst = host_count_inconsistent(lst)
-        lst = host_since_invalid(lst)
-        lst = response_rate(lst)
-        lst = bool_clean(lst)
-        lst = coord_invalid(lst)
-        lst = coord_outside_porto(lst, bbox)
-        if area_bounds:
-            lst = coord_outside_area(lst, area_bounds, area_col)
-        lst = neighbourhood_missing(lst, unknown)
-
-        flag_cols = [c for c in lst.columns if c.startswith("flagged_")]
-        clean_cols = [c for c in lst.columns if c.endswith("_clean")]
-        lst[["id"] + flag_cols + clean_cols].to_csv(Path(out_dir) / f"flags_host_{snap}.csv", index=False)
-        rows.append({"snapshot": snap, "n_listings": len(lst), **{c: int(lst[c].sum()) for c in flag_cols}})
-
-    summary = pd.DataFrame(rows)
-    summary.to_csv(Path(report_dir) / "flags_host_summary.csv", index=False)
-    print(summary.T.to_string(header=False))
-    return summary
+        df = pd.read_csv(find_file(interim, snap), dtype={"id": str, "host_id": str}, low_memory=False)
+        flagged = flag_host_location(df, q)
+        since_null = int(pd.to_datetime(df.get("host_since"), errors="coerce").isna().sum())
+        for rule in RULES:
+            note = ""
+            if rule == "host_since_invalid" and since_null:
+                note = f"host_since thiếu: {since_null}/{len(df)}"
+            elif rule == "coord_outside_area" and not q.get("area_bounds"):
+                note = "chưa cấu hình area_bounds"
+            add(rule, snap, len(flagged), flagged[rule].sum(), note)
+        flags = list(RULES)
+        flagged[["id"] + flags].to_csv(processed / f"listings_host_location_flags_{snap}.csv.gz",
+                                         index=False, encoding="utf-8-sig")
+    rep = pd.DataFrame(report)
+    rep.to_csv(ROOT / "reports" / "qa_report_host_locations.csv", index=False, encoding="utf-8-sig")
+    print(rep[["rule", "snapshot", "rows_total", "rows_flagged"]].to_string(index=False))
 
 
 if __name__ == "__main__":
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--config", default="configs/porto.yaml")
-    ap.add_argument("--interim", help="Thu muc chua listings_<mot>; mac dinh lay paths.interim trong config")
-    args = ap.parse_args()
-    with open(args.config, encoding="utf-8") as f:
-        run(yaml.safe_load(f), args.interim)
+    main()

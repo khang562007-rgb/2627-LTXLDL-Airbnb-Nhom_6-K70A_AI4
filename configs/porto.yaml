@@ -1,5 +1,5 @@
-# Unified configuration for the three Porto data workflows.
-# Paths that differed between branches are kept under their workflow sections.
+# Unified configuration for all Porto data workflows (K1-K8).
+# Paths/keys that differed between branches are kept with compatibility aliases where needed.
 city: porto
 data_root: portugal/norte/porto
 currency: EUR
@@ -10,16 +10,19 @@ snapshots:
   - "2026-09-19"
 seed: 42
 expected_days: 365
+provider: gemini
 
 paths:
   raw_root: data/raw
-  interim: data/interim # filtered, not flagged
-  processed: data/processed # flagged, final outputs
+  raw: data/raw                # alias cho các script dùng paths.raw (K7/K8)
+  interim: data/interim        # đã lọc, chưa gắn cờ
+  processed: data/processed    # đã gắn cờ, kết quả cuối
   sample_root: data/samples
 
 sample:
   data_code: DSE2049-C04-G06-porto
-  calendar_cols: [listing_id, date, available]
+  # Superset cho cả 2 nhánh (nhánh K7/K8 chỉ cần [listing_id, date, available])
+  calendar_cols: [listing_id, date, available, minimum_nights, maximum_nights]
   reviews:
     ids_path: data/samples/review_ids.csv
     ids_url: "https://docs.google.com/spreadsheets/d/1Ru6653xzX4r29ywxoGSGA543F3QjXwQaVgC19WTwNEA/export?format=csv&gid=0"
@@ -29,6 +32,25 @@ sample:
   listing_ids_path: data/samples/id_listing.csv
 
 qa:
+  host:
+    porto_bounds: [41.10, 41.25, -8.70, -8.50]
+    area_bounds:
+      A01: [40.70, 41.1432, -8.80, -8.6103]
+      A02: [41.1432, 41.14908, -8.80, -8.6103]
+      A03: [40.70, 41.14908, -8.6103, -8.60345]
+      A04: [40.70, 41.14908, -8.60345, -8.10]
+      A05: [41.14908, 41.1604, -8.80, -8.6125]
+      A06: [41.1604, 41.45, -8.80, -8.6125]
+      A07: [41.14908, 41.15495, -8.6125, -8.10]
+      A08: [41.15495, 41.45, -8.6125, -8.10]
+  price_calendar:
+    price_iqr_k: 2
+    min_nights_cap: 365
+    max_nights_cap: 1125
+    long_stay_threshold: 30
+    price_jump_ratio: 2
+    availability_min: 0
+    availability_max: 365
   reviews:
     min_comment_len: 3
     dup_content_keys: [listing_id, reviewer_id, date, comments]
@@ -45,9 +67,9 @@ qa:
 calendar:
   raw_file: "data/raw/{snap}/calendar.csv.gz"
   # Filtered calendar consumed by the flagging workflow.
-  interim_file: "data/interim/calendar_{snap}.csv"
+  interim_file: "data/interim/calendar_{snap}.csv.gz"
   flagged_file: "data/processed/calendar_{snap}.csv"
-  required_columns: [listing_id, date, available]
+  required_columns: [listing_id, date, available, minimum_nights, maximum_nights]
   availability_min: 0
   availability_max: 365
 
@@ -60,15 +82,102 @@ download:
   stream_chunk_size: 1048576
   timeout_seconds: 60
 
-  cleaning:
+cleaning:
   price_iqr_k: 2
   min_nights_cap: 365
   max_nights_cap: 1125
   long_stay_threshold: 30
   price_jump_ratio: 2
 
-# Compatibility map for consumers that still use the branch-specific names.
-# Select the relevant workflow section rather than relying on conflicting flat keys.
+# Commercial & Tax KPIs (K05, K06)
+availability_commercial: 240
+tourist_tax_per_night: 3          # EUR/khách/đêm, nguồn: cổng thuế du lịch Porto
+tourist_tax_guests: 2             # giả định số khách mỗi đêm (hoặc dùng accommodates)
+tourist_tax_max_nights: 7         # trần đêm liên tiếp mỗi lượt
+kpi_commercial_share:
+  id: K06
+  slug: commercial_share
+k05_revenue_tax:
+  id: K05
+  slug: revenue_tax
+  review_rate: 0.5
+  average_stay_nights: 3
+  sensitivity_average_stay: [2, 3, 5]
+  occupancy_cap: 0.70
+  max_nights_per_year: 365
+  use_iqr_fence: true
+  iqr_k: 1.5
+  tourist_tax_per_night:
+    short_stay: 3
+    long_stay: 3
+  license_exempt_values: ["exempt"]
+
+baseline:
+  # Ưu tiên langdetect; dùng bộ từ dừng dự phòng nếu môi trường chưa cài gói này.
+  lang_backend: auto
+  min_lang_confidence: 0.5
+  short_max_tokens: 3
+  short_min_lang_confidence: 0.1
+
+kpi:
+  # Common settings (used by K7/K8 & area-level KPIs)
+  area_col: analysis_area                  # cột đầu vào, từ porto-listings.csv
+  output_area_col: neighbourhood_cleansed  # tên cột trong file KPI xuất ra
+  min_cell_n: 30
+  max_excluded_share: 0.20
+  exclude_rules: [exclude_from_llm_sample]
+
+  columns:
+    reviews:
+      k7: [id, listing_id, date, comment_clean]
+      k8: [id, listing_id, date]
+    areas:
+      path: data/samples/porto-listings.csv
+      cols: [listing_id, analysis_area]
+    flags:
+      review_exclude:
+        - review_dup_id
+        - review_dup_content
+        - review_orphan
+        - review_date_invalid
+        - comment_empty_or_short
+        - exclude_from_llm_sample
+      review_warn: [comment_markup]
+      listing_warn: [no_reviews, reviews_inconsistent, review_score_range]
+
+  k1:
+    min_rising_streak: 2
+  k2:
+    min_listings_per_host: 2
+    scope: city
+    tolerance_pp: 0.0
+  skip_flags:
+    k3: [room_type_category]
+    k4: []
+
+  k7:
+    aspects:
+      community: [noise, neighbours, area_hygiene, safety]
+      other: [location, unit_cleanliness, host, value, amenities, accuracy, other]
+    handlabel:
+      n: 150
+      path: data/interim/k7_handlabel_sample.csv
+    llm:
+      provider: openai_compat
+      base_url: https://api.shopaikey.com/v1
+      api_key_env: OPENAI_COMPAT_API_KEY
+      model: gpt-4o-mini
+      temperature: null
+      batch_size: 30
+      sleep_s: 4
+      retry_sleep_s: 20
+      max_requests_per_run: 600
+      prompt_version: v1
+      cache_path: data/interim/k7_llm_cache.jsonl
+      labels_path: data/interim/k7_labels.csv
+      usage_log: AI_USAGE.md
+
+# Compatibility map for consumers that still use branch-specific names.
 workflows:
   sample_and_qa:
     raw_root: ".."
@@ -80,3 +189,5 @@ workflows:
     calendar_raw: "data/raw/{snap}/calendar.csv.gz"
     calendar_filtered: "data/processed/calendar_{snap}.csv"
     listings_raw: "data/raw/{snap}/listings.csv.gz"
+  reviews_kpi:
+    calendar_cols: [listing_id, date, available]
