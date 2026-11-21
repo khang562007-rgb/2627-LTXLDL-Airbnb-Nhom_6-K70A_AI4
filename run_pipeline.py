@@ -103,6 +103,9 @@ def main():
             print("\n[SKIP] Bỏ qua K07 LLM và K08 pass 2 theo cờ --skip-llm.")
         run_step("Evaluate Baseline & LLM", [py, "src/evaluate.py", "--config", args.config], args.dry_run)
 
+    if any(s in steps for s in ("qa", "kpi", "reviews")):
+        run_step("Build consolidated QA report", [py, "src/qa_report.py", "--config", args.config], args.dry_run)
+
     if "viz" in steps:
         run_step("Generate figures", [py, "src/viz.py", "--config", args.config, "--out", "figures"], args.dry_run)
 

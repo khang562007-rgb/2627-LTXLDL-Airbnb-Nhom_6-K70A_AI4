@@ -1,1 +1,51 @@
-- 2026-11-17 | openai_compat gpt-4o-mini | prompt v1 | 24 yêu cầu | 676 review | 43 lỗi
+# AI_USAGE.md
+
+**Inside Airbnb Porto · Nhóm 6 · nhánh `dung-branch`.** Dự án theo dõi một mẫu listing và review qua bốn mốc từ tháng 9/2025 đến tháng 9/2026. Nhóm dùng Codex trong quá trình phát triển và dùng mô hình ngôn ngữ để đọc một mẫu review khi tính K7. Những số liệu dưới đây lấy từ nhật ký lần chạy, CSV của dự án và các phép kiểm tra trên nhánh làm việc.
+
+## Công cụ đã dùng (vào việc gì)
+
+- **Codex** hỗ trợ nhóm viết và kiểm tra mã K3/K4, đối chiếu từ điển dữ liệu với CSV đã xuất, sửa bộ đọc đầu vào của baseline và rà soát kết quả chạy pipeline Porto.
+- **GPT-4o-mini qua API** gán nhãn ngôn ngữ, cảm xúc, khía cạnh được khen/chê và trích dẫn cho mẫu review K7. Nhật ký ngày 17/11/2026 ghi nhận 24 yêu cầu với prompt `v1`. Cache lưu kết quả theo ID và lần thử. Baseline chạy riêng bằng bộ nhận diện ngôn ngữ và từ điển từ khóa. [Cấu hình Porto](configs/porto.yaml) · [Mã gán nhãn K7](src/llm_label.py) · [Baseline](src/baseline.py)
+
+**Cách một review đi từ văn bản đến KPI.** K8 tạo `reviews_valid.csv` sau bước lọc. Baseline đọc văn bản sạch, nhận diện ngôn ngữ, chấm từ khóa có xét phủ định và ghi điểm tích cực, tiêu cực cùng trạng thái xử lý. Với K7, mã chọn ngẫu nhiên tối đa một review cho mỗi listing được đại diện, dùng seed 42. Trước khi gửi API, mã gộp những lần cùng ID xuất hiện ở nhiều mốc. Sau khi nhận nhãn, mã nối nhãn lại theo ID để tính chỉ số cho từng khu và từng mốc. Vì thế một review có thể đóng góp vào nhiều mốc dù chỉ cần gán nhãn thành công một lần. [Bước chọn mẫu](src/kpi_common.py) · [Bước ghép nhãn và tính K7](src/kpi_k7_evidence_review.py)
+
+**Cách ghi nhận việc gọi API.** Cấu hình Porto dùng giao diện `openai_compat` và chia lô tối đa 30 review. Với từng ID trong lô, mã lưu số lần thử, phiên bản prompt, tên mô hình, kết quả trả về và lỗi kiểm tra vào JSONL. Nhờ đó có thể giải thích vì sao 24 yêu cầu API tạo ra 676 lượt xử lý cho 635 ID. Nhật ký ghi số yêu cầu và lượt review. Để chốt chi phí bằng tiền, nhóm còn cần số token thực tế hoặc hóa đơn của nhà cung cấp. [Cấu hình lô](configs/porto.yaml) · [Cache theo lần thử](data/interim/k7_llm_cache.jsonl)
+
+## Prompt then chốt (5-10): bước nào, vào tệp nào
+
+Bảy mục dưới đây tóm tắt yêu cầu theo từng bước. Prompt gửi cho mô hình ở bước 3 nằm trong hàm `build_prompt`.
+
+1. **Tính K3/K4.** Từ listings theo mốc và tệp cờ thuộc tính, tính tỷ lệ nguyên căn trước và sau khi loại dòng bị cờ `room_type_category`. Với K4, so tập ID ở hai mốc liền nhau để đếm listing mới và mất. Giữ cả tử số và mẫu số trong CSV để nhóm tự tính lại dòng `ALL`. [Mã K3](src/kpi_k3_entire_home_share.py) · [Mã K4](src/kpi_k4_supply_change.py)
+2. **Soạn từ điển.** Mô tả các trường của listings, calendar, reviews, cờ QA và đầu ra KPI để người đọc biết khóa nối, đơn vị và mẫu số. [Từ điển dữ liệu](reports/data_dictionary.md)
+3. **Gán nhãn K7.** Đầu vào mỗi lô là các cặp `id` và `text`. Prompt yêu cầu trả một phần tử JSON cho mỗi ID theo thứ tự đầu vào, ghi mã ngôn ngữ, một trong ba nhãn `positive`, `mixed`, `negative` và danh sách khía cạnh. Mỗi khía cạnh có chiều khen/chê cùng trích dẫn bằng ngôn ngữ gốc. Prompt phân biệt vệ sinh bên trong căn hộ với vệ sinh khu vực xung quanh. Sự phân biệt này quyết định lời chê có được tính vào K7 hay không. [Prompt nguyên văn trong hàm build_prompt](src/llm_label.py) · [Nhãn đã lưu](data/interim/k7_labels.csv)
+4. **Kiểm tra toàn trình.** Chạy pipeline theo cấu hình Porto, ghi nhận bước hoàn thành và đọc tiêu đề tệp ở điểm dừng. Trong lần kiểm tra phiên bản ngày 19/11/2026, K8 đã tạo `reviews_valid.csv` với cột `comment_clean`, còn baseline khi đó yêu cầu `comments`. Kết quả giúp xác định lỗi nằm ở bước bàn giao dữ liệu từ K8 sang baseline. [Pipeline](run_pipeline.py) · [Cấu hình](configs/porto.yaml)
+5. **Sửa đầu vào baseline.** Sau khi pipeline đọc được `comment_clean`, thử lại tệp mẫu của repo có `comments`. Yêu cầu bộ đọc chọn một cột nội dung cho cả tệp, ưu tiên cột sạch và nhận được cả dấu tab lẫn dấu phẩy. Nếu cả hai cột cùng tồn tại, giữ ô sạch rỗng để bảo toàn kết quả QA. Phạm vi sửa nằm ở phần đọc tệp trong `run()` và nhận diện dấu phân cách. [Bộ đọc](src/baseline.py) · [Tệp mẫu](data/samples/reviews_sample.csv)
+6. **Cập nhật từ điển sau khi chạy.** Đối chiếu năm cột calendar và tên trường K1–K8 với CSV thực tế. Sửa liên kết QA và ghi rõ cách baseline chọn cột nội dung. [Từ điển đã cập nhật](reports/data_dictionary.md)
+7. **Ghi nhận việc dùng AI.** Viết lại `AI_USAGE.md` theo bốn mục, nêu ví dụ AI sai và cách nhóm kiểm tra bằng dữ liệu của dự án.
+
+## AI sai ở đâu (ví dụ thật)
+
+- **K7 trích sai lời khách.** Với review `733857091106204293`, mô hình kết thúc trích dẫn bằng “below.”. Trong review gốc, khách viết “below, it didn’t bother us at all”. Dấu câu sai khiến trích dẫn trượt phép kiểm tra nguyên văn. Phần bị cắt cũng cho thấy tiếng ồn chưa đến mức làm phiền người viết. Pipeline đưa review này vào danh sách rà soát và loại khỏi mẫu tính K7. [Review và trích dẫn](data/processed/k07_evidence_review.csv)
+- **K7 bỏ sót ID và trả trường khía cạnh không hợp lệ.** Trong 676 lượt xử lý review, cache ghi 36 lỗi `missing_in_response` và 7 lỗi `aspect`. Sau các lần thử lại, bảng nhãn cuối có 633 ID hợp lệ về cấu trúc và 2 ID còn lỗi. [Cache theo lần thử](data/interim/k7_llm_cache.jsonl) · [Nhãn cuối](data/interim/k7_labels.csv)
+- **Codex mô tả nhầm đầu ra.** Bản từ điển cũ ghi calendar có ba cột và mô tả K3 bằng `khu`, `value_pct`. CSV thực tế còn có `minimum_nights`, `maximum_nights`. CSV K3 xuất `neighbourhood_cleansed` và `value`. Nhóm đã sửa tài liệu theo tiêu đề tệp. [Từ điển hiện tại](reports/data_dictionary.md) · [CSV K3](data/processed/kpi_k3_entire_home_share.csv)
+
+**Hai ID minh họa tác dụng và giới hạn của việc thử lại.** Review `71792369` thiếu trong phản hồi đầu (`missing_in_response`) rồi nhận kết quả hợp lệ ở lần hai. Review `906423213530038214` trả lỗi `aspect` ở cả hai lần. Mã này bao quát nhiều nguyên nhân, gồm tên khía cạnh ngoài danh mục, chiều khen/chê sai hoặc phần tử trả về sai kiểu. Cache chỉ lưu mã lỗi cho lượt thất bại nên chưa thể kết luận riêng ID này mắc nguyên nhân nào. [Lịch sử hai lần thử](data/interim/k7_llm_cache.jsonl) · [Hàm kiểm tra phản hồi](src/llm_label.py)
+
+**Một đề xuất sai có thể đổi hẳn câu hỏi phân tích.** Trong bản thảo phương pháp ở commit `e152bc1`, Codex từng đề xuất K1 là giá niêm yết trung vị và K8 là tỷ lệ review tiêu cực. Mã tích hợp thực tế tính K1 bằng tỷ trọng listing của từng khu và dùng K8 để đo độ tin cậy dữ liệu. Dùng mô tả cũ sẽ dẫn đến diễn giải sai cả đại lượng lẫn đơn vị. Nhóm đã lấy tên phép đo, tử số, mẫu số và đơn vị từ mã cùng CSV thực tế để cập nhật từ điển. [K1](src/kpi_k1_area_share.py) · [K8](src/kpi_k8_data_reliability.py) · [Từ điển đã sửa](reports/data_dictionary.md)
+
+## Nhóm kiểm chứng thế nào
+
+
+1. **Đối chiếu tài liệu với dữ liệu.** Đọc tiêu đề calendar ở cả bốn mốc, kiểm tra danh sách tệp KPI trong `data/processed/` và kiểm tra đích các liên kết của từ điển. Hai tài liệu phương pháp QA/KPI và dự toán chi phí LLM cũ được dẫn về commit `e152bc1` để người đọc tra đúng phiên bản. [Từ điển dữ liệu](reports/data_dictionary.md)
+2. **Chạy baseline trên cả hai dạng đầu vào.** Tệp mẫu có `review_id` và `comments`: cả 43 ID xuất hiện đúng thứ tự ở đầu ra. Với tệp pipeline có `id` và `comment_clean`, cả 30 dòng đầu cho kết quả khớp từng trường với CSV đã lưu. Một ca thử có cả hai cột xác nhận rằng ô `comment_clean` rỗng nhận trạng thái `excluded_empty` dù `comments` có chữ. [Tệp mẫu](data/samples/reviews_sample.csv) · [Đầu vào pipeline](data/processed/reviews_valid.csv) · [Kết quả baseline](data/processed/baseline_reviews.csv)
+3. **Đối chiếu nhãn và dẫn chứng K7.** Ở mốc 21/09/2025, dòng `ALL` ghi 626 review được dùng và 9 bị loại. Đối chiếu với bảng nhãn và danh sách rà soát cho thấy 2 nhãn sai cấu trúc và 7 trích dẫn trượt kiểm tra. [Báo cáo QA K7](data/processed/kpi_k07_report.csv) · [CSV K7](data/processed/kpi_k07_community_complaint.csv)
+4. **Kiểm tra phạm vi đánh giá.** Đếm theo `review_id` cho thấy 19.932 dòng baseline theo mốc tương ứng 5.000 ID riêng biệt. Cả 635 ID trong bảng nhãn LLM đều có kết quả baseline để so sánh. Tại thời điểm kiểm tra, đường dẫn nhãn tay trong cấu hình (`data/interim/k7_handlabel_sample.csv`) chưa có tệp, nên accuracy và F1 so với nhãn tay vẫn chưa được xác nhận. [Mã đánh giá](src/evaluate.py) · [Cấu hình tập nhãn tay](configs/porto.yaml)
+5. **Tính tay hai KPI có Codex hỗ trợ.** Ở ngày 19/09/2026, dòng `ALL` của K3 có 853 nguyên căn trên 974 listing sau QA, cho kết quả 100 × 853 / 974 = **87,58%** khi làm tròn. Với K4 từ 23/06 đến 19/09/2026, mẫu có 0 ID mới và mất 26 ID trên 1.000 ID của mốc trước. Kết quả là **−2,60%**. Kiểm tra cả số đếm và dấu giúp phát hiện lỗi nếu đổi chỗ mốc trước và mốc sau. [CSV K3](data/processed/kpi_k3_entire_home_share.csv) · [CSV K4](data/processed/kpi_k4_supply_change.csv)
+6. **Tính lại K7 tại một mốc.** Ngày 21/09/2025, mẫu có 635 review. Sau khi loại 9 trường hợp, 33 trong 626 review đủ điều kiện có lời chê thuộc nhóm tiếng ồn, hàng xóm, vệ sinh khu vực hoặc an toàn. Phép tính 100 × 33 / 626 cho **5,27%**, khớp dòng `ALL`. Khi đọc kết quả theo khu, mã chỉ xuất tỷ lệ nếu nhóm có ít nhất 30 review đủ điều kiện. [CSV K7](data/processed/kpi_k07_community_complaint.csv) · [Điều kiện chọn mẫu số](src/kpi_k7_evidence_review.py)
+7. **Đo mức đồng thuận giữa hai phương pháp.** Chạy `src/evaluate.py` với cấu hình Porto trên hai bảng đã lưu. Baseline và LLM trùng nhãn ngôn ngữ ở **99,68%** trên 633 trường hợp có thể so, trùng nhãn cảm xúc ở **83,70%** trên 632 trường hợp và trùng nhãn phàn nàn cộng đồng ở **95,42%** trên 633 trường hợp. Mỗi tác vụ dùng các dòng có đủ nhãn tương ứng. Riêng tác vụ phàn nàn, nếu lấy nhãn LLM làm mốc so thì F1 của lớp có phàn nàn là **0,6133**. Chỉ số này giúp nhóm chọn các review bất đồng để đọc lại. Muốn kết luận phương pháp nào đúng hơn, cần đối chiếu với nhãn tay độc lập. [Chương trình đánh giá](src/evaluate.py)
+
+Để lặp lại phép so ở bước 7 từ thư mục gốc của repo, dùng lệnh dưới đây với môi trường Python của dự án. Kết quả tổng hợp nằm trong `eval_baseline_vs_llm.csv`. Các ID cần đọc lại nằm trong `eval_mismatches.csv` ở cùng thư mục đầu ra.
+
+```shell
+python src/evaluate.py --config configs/porto.yaml --out-dir reports
+```

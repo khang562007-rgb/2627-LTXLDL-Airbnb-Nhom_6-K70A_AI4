@@ -89,8 +89,18 @@ def main(config_path, valid_path, out_dir, handlabel=False, skip_llm=False):
     k_all = d[d.ok].groupby("snapshot").is_complaint.sum().rename("k").reset_index()
     allc = allc.merge(k_all, on="snapshot", how="left").assign(**{out_area: "ALL"})
     res = pd.concat([by_area, allc], ignore_index=True).fillna({"k": 0})
+    # trước QA: giữ cả review bị cờ llm_evidence_missing (nhãn LLM hợp lệ nhưng bằng chứng không khớp)
+    pre = d[d.has_label & d.label_valid]
+    keys = ["snapshot", area_col]
+    b_area = pre.groupby(keys).agg(n_before_qa=("is_complaint", "size"), k_before=("is_complaint", "sum")).reset_index()
+    b_all = pre.groupby("snapshot").agg(n_before_qa=("is_complaint", "size"), k_before=("is_complaint", "sum")).reset_index()
+    before = pd.concat([b_area.rename(columns={area_col: out_area}), b_all.assign(**{out_area: "ALL"})],
+                       ignore_index=True)
+    res = res.merge(before, on=["snapshot", out_area], how="left").fillna({"n_before_qa": 0, "k_before": 0})
     res["n_excluded"] = res.n_total - res.n_used
     res["value"] = np.where(res.n_used >= min_n, 100 * res.k / res.n_used.where(res.n_used > 0), np.nan)
+    res["value_before_qa"] = np.where(res.n_before_qa >= min_n,
+                                      100 * res.k_before / res.n_before_qa.where(res.n_before_qa > 0), np.nan)
     res["period"] = res["snapshot"]
 
     cells = res[res[out_area] != "ALL"]
@@ -103,7 +113,7 @@ def main(config_path, valid_path, out_dir, handlabel=False, skip_llm=False):
     res.insert(0, "kpi_id", K)
     res["unit"], res["currency"] = "%", ""
     out_dir.mkdir(parents=True, exist_ok=True)
-    res[OUT_COLS].to_csv(out_dir / "kpi_k07_community_complaint.csv", index=False, encoding="utf-8")
+    res[OUT_COLS + ["value_before_qa", "n_before_qa"]].to_csv(out_dir / "kpi_k07_community_complaint.csv", index=False, encoding="utf-8")
     rec.save_report(out_dir / "kpi_k07_report.csv")
     show = [c for c in ["id", "listing_id", "comment_clean", "evidence"] if c in df]
     df.loc[df.evidence_missing, show].drop_duplicates("id").to_csv(

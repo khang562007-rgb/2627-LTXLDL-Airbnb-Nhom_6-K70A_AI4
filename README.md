@@ -70,10 +70,7 @@ Các tùy chọn hỗ trợ:
 ## 4. Các tệp đầu ra cần kiểm tra sau khi chạy
 
 ### Báo cáo QA (`reports/`)
-- [`reports/qa_report_host_locations.csv`](reports/qa_report_host_locations.csv)
-- [`reports/qa_report_price_calendar.csv`](reports/qa_report_price_calendar.csv)
-- [`reports/qa_report_property.csv`](reports/qa_report_property.csv)
-- [`reports/qa_report_reviews.csv`](reports/qa_report_reviews.csv)
+- [`reports/qa_report.csv`](reports/qa_report.csv) — Báo cáo QA tổng hợp (các quy tắc QA, số dòng và tác động KPI trước/sau QA)
 - [`reports/k05_checks.csv`](reports/k05_checks.csv) & [`reports/k05_sensitivity.csv`](reports/k05_sensitivity.csv)
 
 ### Dữ liệu KPI, Review & LLM (`data/processed/` & `data/interim/`)

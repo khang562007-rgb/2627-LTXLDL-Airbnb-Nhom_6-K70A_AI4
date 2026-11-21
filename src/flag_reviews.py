@@ -143,7 +143,7 @@ def main():
     interim = ROOT / cfg["paths"]["interim"]
     processed = ROOT / cfg["paths"]["processed"]
     processed.mkdir(parents=True, exist_ok=True)
-    (ROOT / "reports").mkdir(exist_ok=True)
+    (ROOT / "data" / "interim" / "qa_parts").mkdir(parents=True, exist_ok=True)
     ids_by_snap = {}
 
     for snap in cfg["snapshots"]:
@@ -182,7 +182,7 @@ def main():
         add("id_set_consistent", f"{a}->{b}", len(ids_by_snap[a]), gone, f"mới ở mốc sau: {new}")
 
     rep = pd.DataFrame(report)
-    rep.to_csv(ROOT / "reports" / "qa_report_reviews.csv", index=False, encoding="utf-8-sig")
+    rep.to_csv(ROOT / "data" / "interim" / "qa_parts" / "qa_report_reviews.csv", index=False, encoding="utf-8-sig")
     print(rep[["rule", "snapshot", "rows_total", "rows_flagged"]].to_string(index=False))
 
 

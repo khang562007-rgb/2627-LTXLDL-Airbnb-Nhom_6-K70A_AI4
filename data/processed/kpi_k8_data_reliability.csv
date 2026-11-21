@@ -2,7 +2,7 @@ kpi_id,kpi_name,snapshot,neighbourhood_cleansed,period,value,unit,currency,n_use
 k08,k08_review_dup_id,2025-09-21,ALL,2025-09-21,0.0,%,,5000,0
 k08,k08_review_dup_content,2025-09-21,ALL,2025-09-21,0.0,%,,5000,0
 k08,k08_review_orphan,2025-09-21,ALL,2025-09-21,0.0,%,,5000,0
-k08,k08_review_date_invalid,2025-09-21,ALL,2025-09-21,0.54,%,,5000,27
+k08,k08_review_date_invalid,2025-09-21,ALL,2025-09-21,0.0,%,,5000,0
 k08,k08_comment_empty_or_short,2025-09-21,ALL,2025-09-21,0.0,%,,5000,0
 k08,k08_exclude_from_llm_sample,2025-09-21,ALL,2025-09-21,0.0,%,,5000,0
 k08,k08_comment_markup,2025-09-21,ALL,2025-09-21,21.72,%,,5000,1086

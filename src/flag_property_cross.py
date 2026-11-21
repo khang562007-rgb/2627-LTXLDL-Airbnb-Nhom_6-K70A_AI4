@@ -246,7 +246,7 @@ def main():
     interim = resolve_interim(cfg["paths"]["interim"], cfg["snapshots"], args.interim)
     processed = ROOT / cfg["paths"]["processed"]
     processed.mkdir(parents=True, exist_ok=True)
-    (ROOT / "reports").mkdir(exist_ok=True)
+    (ROOT / "data" / "interim" / "qa_parts").mkdir(parents=True, exist_ok=True)
 
     tables = {"listings": {}, "calendar": {}}
     for snap in cfg["snapshots"]:
@@ -263,7 +263,7 @@ def main():
                         index=False, encoding="utf-8-sig")
 
     rep = pd.DataFrame(report)
-    rep.to_csv(ROOT / "reports" / "qa_report_property.csv", index=False, encoding="utf-8-sig")
+    rep.to_csv(ROOT / "data" / "interim" / "qa_parts" / "qa_report_property.csv", index=False, encoding="utf-8-sig")
     print(rep[["rule", "snapshot", "rows_total", "rows_flagged"]].to_string(index=False))
 
 

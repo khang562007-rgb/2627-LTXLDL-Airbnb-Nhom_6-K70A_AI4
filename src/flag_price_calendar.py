@@ -103,7 +103,7 @@ def main():
     q = {**q, "expected_days": cfg.get("expected_days", 365)}
     interim, processed = ROOT / cfg["paths"]["interim"], ROOT / cfg["paths"]["processed"]
     processed.mkdir(parents=True, exist_ok=True)
-    (ROOT / "reports").mkdir(exist_ok=True)
+    (ROOT / "data" / "interim" / "qa_parts").mkdir(parents=True, exist_ok=True)
     report.clear()
     last_price = None
     ids_path = ROOT / cfg["sample"]["listing_ids_path"]
@@ -129,7 +129,7 @@ def main():
             processed / f"calendar_row_flags_{snap}.csv.gz", index=False, encoding="utf-8-sig")
         days.to_csv(processed / f"calendar_listing_flags_{snap}.csv", index=False, encoding="utf-8-sig")
     rep = pd.DataFrame(report)
-    rep.to_csv(ROOT / "reports" / "qa_report_price_calendar.csv", index=False, encoding="utf-8-sig")
+    rep.to_csv(ROOT / "data" / "interim" / "qa_parts" / "qa_report_price_calendar.csv", index=False, encoding="utf-8-sig")
     print(rep[["rule", "snapshot", "rows_total", "rows_flagged"]].to_string(index=False))
 
 

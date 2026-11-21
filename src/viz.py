@@ -70,20 +70,18 @@ def plot_grouped_bars(ax, piv, title, ylabel, fmt="{:.1f}"):
 
 
 def fig_qa_overview(reports_dir, snaps, out_dir):
-    files = [
-        ("host", "qa_report_host_locations.csv"),
-        ("price", "qa_report_price_calendar.csv"),
-        ("property", "qa_report_property.csv"),
-        ("reviews", "qa_report_reviews.csv"),
-    ]
+    modules = {"host_locations": "host", "price_calendar": "price", "property": "property", "reviews": "reviews"}
+    rep = load_csv(reports_dir / "qa_report.csv")   # tệp QA gộp (src/qa_report.py)
     parts = []
-    for prefix, fname in files:
-        df = load_csv(reports_dir / fname)
-        if df is not None and not df.empty:
-            d = df[df["snapshot"].isin(snaps)].copy()
-            d["rate_pct"] = np.where(d["rows_total"] > 0, 100.0 * d["rows_flagged"] / d["rows_total"], 0.0)
-            d["label"] = prefix + ": " + d["rule"].astype(str)
-            parts.append(d[["label", "snapshot", "rate_pct"]])
+    if rep is not None and not rep.empty:
+        rep = rep[(rep["section"] == "rule") & rep["module"].isin(modules)]
+        for module, prefix in modules.items():
+            df = rep[rep["module"] == module]
+            if not df.empty:
+                d = df[df["snapshot"].isin(snaps)].copy()
+                d["rate_pct"] = np.where(d["rows_total"] > 0, 100.0 * d["rows_flagged"] / d["rows_total"], 0.0)
+                d["label"] = prefix + ": " + d["rule"].astype(str)
+                parts.append(d[["label", "snapshot", "rate_pct"]])
     if not parts:
         return
 

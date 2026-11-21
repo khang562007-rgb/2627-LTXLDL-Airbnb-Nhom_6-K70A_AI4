@@ -89,7 +89,7 @@ def main():
     q = cfg.get("qa", {}).get("host", {})
     interim, processed = ROOT / cfg["paths"]["interim"], ROOT / cfg["paths"]["processed"]
     processed.mkdir(parents=True, exist_ok=True)
-    (ROOT / "reports").mkdir(exist_ok=True)
+    (ROOT / "data" / "interim" / "qa_parts").mkdir(parents=True, exist_ok=True)
     report.clear()
     for snap in cfg["snapshots"]:
         df = pd.read_csv(find_file(interim, snap), dtype={"id": str, "host_id": str}, low_memory=False)
@@ -106,7 +106,7 @@ def main():
         flagged[["id"] + flags].to_csv(processed / f"listings_host_location_flags_{snap}.csv.gz",
                                          index=False, encoding="utf-8-sig")
     rep = pd.DataFrame(report)
-    rep.to_csv(ROOT / "reports" / "qa_report_host_locations.csv", index=False, encoding="utf-8-sig")
+    rep.to_csv(ROOT / "data" / "interim" / "qa_parts" / "qa_report_host_locations.csv", index=False, encoding="utf-8-sig")
     print(rep[["rule", "snapshot", "rows_total", "rows_flagged"]].to_string(index=False))
 
 
