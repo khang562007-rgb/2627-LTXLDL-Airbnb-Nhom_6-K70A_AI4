@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Xuất bằng chứng review cho KPI K7 (k07_evidence_review.csv) và tạo mẫu gán nhãn tay (--handlabel).
+"""Xuất bằng chứng review cho KPI K7 (k7_evidence_review.csv) và tạo mẫu gán nhãn tay (--handlabel).
 
 Chạy từ gốc repo:
     # 1. Tạo mẫu gán nhãn tay (data/interim/k7_handlabel_sample.csv):
     python src/kpi_k7_evidence_review.py configs/porto.yaml data/processed/reviews_valid.csv data/processed --handlabel
 
-    # 2. Xuất danh sách ca bằng chứng phàn nàn cộng đồng (k07_evidence_review.csv):
+    # 2. Xuất danh sách ca bằng chứng phàn nàn cộng đồng (k7_evidence_review.csv):
     python src/kpi_k7_evidence_review.py configs/porto.yaml data/processed/reviews_valid.csv data/processed
 """
 from __future__ import annotations
@@ -172,7 +172,7 @@ def generate_evidence_review(
 
     ev_out = ev_out[["id", "listing_id", "comment_clean", "evidence"]].drop_duplicates("id").reset_index(drop=True)
     out_dir.mkdir(parents=True, exist_ok=True)
-    out_path = out_dir / "k07_evidence_review.csv"
+    out_path = out_dir / "k7_evidence_review.csv"
     ev_out.to_csv(out_path, index=False, encoding="utf-8")
     print(f"[evidence] Đã xuất {len(ev_out)} ca bằng chứng thiếu/không khớp (llm_evidence_missing) -> {out_path}")
     return out_path
@@ -184,7 +184,7 @@ def main() -> None:
     ap.add_argument("reviews_csv", help="Đường dẫn data/processed/reviews_valid.csv")
     ap.add_argument("out_dir", help="Thư mục đầu ra (vd: data/processed)")
     ap.add_argument("--handlabel", action="store_true", help="Sinh file mẫu gán nhãn tay k7_handlabel_sample.csv")
-    ap.add_argument("--n-evidence", type=int, default=None, help="Giới hạn số ca xuất vào k07_evidence_review.csv (mặc định xuất hết)")
+    ap.add_argument("--n-evidence", type=int, default=None, help="Giới hạn số ca xuất vào k7_evidence_review.csv (mặc định xuất hết)")
     args = ap.parse_args()
 
     root = Path(__file__).resolve().parent.parent

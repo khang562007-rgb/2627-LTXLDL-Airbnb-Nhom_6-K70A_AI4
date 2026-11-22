@@ -87,7 +87,7 @@ Các tùy chọn hỗ trợ:
 - [`reports/data_dictionary.md`](reports/data_dictionary.md) — Từ điển dữ liệu chi tiết
 - [`reports/eval_summary.csv`](reports/eval_summary.csv) — Độ chính xác và F1 của Baseline & LLM so với 150 nhãn tay
 - [`reports/eval_baseline_vs_llm.csv`](reports/eval_baseline_vs_llm.csv) & [`reports/eval_mismatches.csv`](reports/eval_mismatches.csv) — Đối chiếu chéo Baseline vs LLM và danh sách ca sai lệch để phân tích lỗi
-- [`reports/k05_checks.csv`](reports/k05_checks.csv) & [`reports/k05_sensitivity.csv`](reports/k05_sensitivity.csv) — Kiểm định và độ nhạy K05 (`Average Stay = 2, 3, 5`)
+- [`reports/k5_checks.csv`](reports/k5_checks.csv) & [`reports/k5_sensitivity.csv`](reports/k5_sensitivity.csv) — Kiểm định và độ nhạy K05 (`Average Stay = 2, 3, 5`)
 
 ### Dữ liệu KPI, Review & LLM (`data/processed/` & `data/interim/`)
 - **KPI K01–K08**:
@@ -95,10 +95,10 @@ Các tùy chọn hỗ trợ:
   - `data/processed/kpi_k2_multi_host_share.csv`
   - `data/processed/kpi_k3_entire_home_share.csv`
   - `data/processed/kpi_k4_supply_change.csv`
-  - `data/processed/kpi_k05_revenue_tax.csv`
-  - `data/processed/kpi_k06_commercial_share.csv`
-  - `data/processed/kpi_k07_community_complaint.csv` (cùng `kpi_k07_report.csv`, `k07_evidence_review.csv`)
-  - `data/processed/kpi_k8_data_reliability.csv` (cùng `kpi_k08_report.csv`)
+  - `data/processed/kpi_k5_revenue_tax.csv`
+  - `data/processed/kpi_k6_commercial_share.csv`
+  - `data/processed/kpi_k7_community_complaint.csv` (cùng `kpi_k7_report.csv`, `k7_evidence_review.csv`)
+  - `data/processed/kpi_k8_data_reliability.csv` (cùng `kpi_k8_report.csv`)
 - **Review & NLP / LLM**:
   - `data/processed/reviews_valid.csv`
   - `data/processed/baseline_reviews.csv`

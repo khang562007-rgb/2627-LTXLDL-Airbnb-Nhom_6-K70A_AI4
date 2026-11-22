@@ -96,7 +96,7 @@ def main(
                     note=f"{'VƯỢT' if over else 'trong'} ngưỡng {kcfg['max_excluded_share']:.0%}")
 
     pd.DataFrame(rec.kpi_rows)[OUT_COLS].to_csv(out_dir / "kpi_k8_data_reliability.csv", index=False, encoding="utf-8")
-    rec.save_report(out_dir / "kpi_k08_report.csv")
+    rec.save_report(out_dir / "kpi_k8_report.csv")
     print(f"ok K8: {len(rec.kpi_rows)} dòng KPI, {len(valid)} dòng review hợp lệ")
 
 

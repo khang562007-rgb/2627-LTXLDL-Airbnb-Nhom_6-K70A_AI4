@@ -77,7 +77,7 @@ def main(config_path, valid_path, out_dir, handlabel=False, skip_llm=False):
         rec.add("listing_no_neighbourhood", snap, len(g), g.f_no_area.sum(), to_kpi=False)
         rec.add("llm_label_invalid", snap, len(g), g.f_label_invalid.sum(), to_kpi=False)
         rec.add("llm_evidence_missing", snap, len(g), g.f_evidence.sum(), to_kpi=False,
-                note="danh sách kiểm tra tay: k07_evidence_review.csv")
+                note="danh sách kiểm tra tay: k7_evidence_review.csv")
 
     # --- ô KPI: khu x mốc, và toàn thành phố (ALL) ---
     d = df[df.has_area].assign(**{area_col: lambda x: x[area_col]})
@@ -112,11 +112,11 @@ def main(config_path, valid_path, out_dir, handlabel=False, skip_llm=False):
     res.insert(0, "kpi_id", K)
     res["unit"], res["currency"] = "%", ""
     out_dir.mkdir(parents=True, exist_ok=True)
-    res[OUT_COLS + ["value_before_qa", "n_before_qa"]].to_csv(out_dir / "kpi_k07_community_complaint.csv", index=False, encoding="utf-8")
-    rec.save_report(out_dir / "kpi_k07_report.csv")
+    res[OUT_COLS + ["value_before_qa", "n_before_qa"]].to_csv(out_dir / "kpi_k7_community_complaint.csv", index=False, encoding="utf-8")
+    rec.save_report(out_dir / "kpi_k7_report.csv")
     show = [c for c in ["id", "listing_id", "comment_clean", "evidence"] if c in df]
     df.loc[df.evidence_missing, show].drop_duplicates("id").to_csv(
-        out_dir / "k07_evidence_review.csv", index=False, encoding="utf-8")
+        out_dir / "k7_evidence_review.csv", index=False, encoding="utf-8")
     print(f"ok K7: {len(res)} ô KPI")
 
 

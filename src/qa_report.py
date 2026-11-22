@@ -4,8 +4,8 @@
 
 Đầu vào (do các bước trước sinh ra):
   data/interim/qa_parts/qa_report_*.csv     quy tắc QA của 4 mô-đun flag_*.py
-  data/processed/kpi_k07_report.csv         quy tắc QA cho nhãn LLM (K07)
-  data/processed/kpi_k08_report.csv         kiểm tra độ tin cậy dữ liệu (K08)
+  data/processed/kpi_k7_report.csv         quy tắc QA cho nhãn LLM (K07)
+  data/processed/kpi_k8_report.csv         kiểm tra độ tin cậy dữ liệu (K08)
   data/processed/kpi_*.csv                  KPI (để tính tác động trước/sau QA)
   data/processed/*_flags_<snap>.csv.gz, reviews_flagged_<snap>.csv.gz, reviews_valid.csv
 
@@ -37,8 +37,8 @@ RULE_PARTS = [  # (module, tệp, thư mục: "parts" | "processed")
     ("price_calendar", "qa_report_price_calendar.csv", "parts"),
     ("property", "qa_report_property.csv", "parts"),
     ("reviews", "qa_report_reviews.csv", "parts"),
-    ("k07_llm", "kpi_k07_report.csv", "processed"),
-    ("k08_reliability", "kpi_k08_report.csv", "processed"),
+    ("k07_llm", "kpi_k7_report.csv", "processed"),
+    ("k08_reliability", "kpi_k8_report.csv", "processed"),
 ]
 
 NO_DROP = "QA chỉ gắn cờ, không loại dòng nào khỏi KPI -> trước = sau"
@@ -77,7 +77,7 @@ def rule_section(parts_dir, proc):
 def rows_section(cfg, proc, snaps):
     out = []
     valid = read(proc / "reviews_valid.csv")
-    k05 = read(proc / "kpi_k05_revenue_tax.csv")
+    k05 = read(proc / "kpi_k5_revenue_tax.csv")
     for s in snaps:
         p = find(proc, "listings_price_flags", s)
         if p is not None and k05 is not None:
@@ -152,7 +152,7 @@ def kpi_section(proc):
         out.append(city)
 
         # độ nhạy K05: QA giữ listing price_outlier; nếu loại thì doanh thu đổi bao nhiêu
-        if path.name.startswith("kpi_k05_"):
+        if path.name.startswith("kpi_k5_"):
             rev = city[city.kpi_name == "estimated_revenue"].set_index("snapshot")
             outl = city[city.kpi_name == "price_outlier_revenue"].set_index("snapshot")
             outl_n = city[city.kpi_name == "price_outlier_listings"].set_index("snapshot")

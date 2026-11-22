@@ -85,7 +85,7 @@ def main():
 
     if "reviews" in steps:
         valid_csv = f"{proc_dir}/reviews_valid.csv"
-        k07_csv = f"{proc_dir}/kpi_k07_community_complaint.csv"
+        k07_csv = f"{proc_dir}/kpi_k7_community_complaint.csv"
         run_step("K08 data reliability (pass 1)", [py, "src/kpi_k8_data_reliability.py", args.config, proc_dir], args.dry_run)
         run_step(
             "Baseline NLP (language & sentiment)",

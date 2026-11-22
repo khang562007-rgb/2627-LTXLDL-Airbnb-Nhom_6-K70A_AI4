@@ -64,7 +64,7 @@ QA chỉ gắn cờ (`True`/`False`) và tạo cột sạch (`price_clean`, `bat
 | `listings_review_flags_<mốc>.csv.gz` | `id`, `no_reviews`, `reviews_inconsistent`, `review_score_range` |
 | `reviews_flagged_<mốc>.csv.gz` | 6 cột nguồn + `review_dup_id`, `review_dup_content`, `review_orphan`, `review_date_invalid`, `comment_markup`, `comment_clean`, `comment_empty_or_short`, `exclude_from_llm_sample` |
 
-**Báo cáo QA tổng hợp** nằm tại [reports/qa_report.csv](qa_report.csv) (gộp từ 4 tệp thành phần trong `data/interim/qa_parts/`, `kpi_k07_report.csv`, `kpi_k08_report.csv` và tác động trước/sau QA lên các KPI) với 3 loại dòng theo cột `section`: `rule` (chi tiết quy tắc và `%` bị gắn cờ), `rows` (số dòng trước/sau lọc QA), và `kpi_impact` (giá trị KPI cấp thành phố/khu trước và sau QA, kèm `delta`).
+**Báo cáo QA tổng hợp** nằm tại [reports/qa_report.csv](qa_report.csv) (gộp từ 4 tệp thành phần trong `data/interim/qa_parts/`, `kpi_k7_report.csv`, `kpi_k8_report.csv` và tác động trước/sau QA lên các KPI) với 3 loại dòng theo cột `section`: `rule` (chi tiết quy tắc và `%` bị gắn cờ), `rows` (số dòng trước/sau lọc QA), và `kpi_impact` (giá trị KPI cấp thành phố/khu trước và sau QA, kèm `delta`).
 
 ---
 
@@ -78,9 +78,9 @@ Mỗi dòng biểu diễn một phép đo (`kpi_id`, `kpi_name`) tại mốc `sn
 | `kpi_k2_multi_host_share.csv` | Tỷ lệ listing thuộc chủ có `≥ 2` listing (`%`). | Đếm theo `host_id` toàn mẫu mốc; có `n_multi_host_listings`, `share_delta_pp`, `flag_rising`. |
 | `kpi_k3_entire_home_share.csv` | Tỷ lệ nguyên căn (`Entire home/apt`) sau lọc QA (`%`). | Có kèm `value_before_qa`, `n_entire_before_qa`, `n_total_before_qa`, `n_entire_after_qa`, `n_total_after_qa`. |
 | `kpi_k4_supply_change.csv` | Biến động nguồn cung ròng giữa 2 mốc liên tiếp (`%`). | `100 × (n_new - n_gone) / n_prev`; `comparison_period` ghi cặp mốc. |
-| `kpi_k05_revenue_tax.csv` | Số đêm đặt, công suất (`%`), doanh thu và thuế du lịch tiềm năng (`EUR/năm`), nhóm outlier giá. | Lọc theo `kpi_name` (11 chỉ số/khu/mốc); xem thêm `reports/k05_sensitivity.csv` và `reports/k05_checks.csv`. |
-| `kpi_k06_commercial_share.csv` | Tỷ lệ listing thương mại/trung hạn (`availability_365 > 240` hoặc `minimum_nights >= 30`) và biên CI 95% (`pp`). | 5 chỉ số/khu/mốc (`commercial_share`, `commercial_share_margin95`, `commercial_listings`, `availability_share`, `long_stay_share`). |
-| `kpi_k07_community_complaint.csv` | Tỷ lệ review hợp lệ có phàn nàn cộng đồng (`noise`, `neighbours`, `area_hygiene`, `safety`) có dẫn chứng nguyên văn (`%`). | Có `value_before_qa` và `n_before_qa`; ô có `n_used < 30` để trống `value`. |
+| `kpi_k5_revenue_tax.csv` | Số đêm đặt, công suất (`%`), doanh thu và thuế du lịch tiềm năng (`EUR/năm`), nhóm outlier giá. | Lọc theo `kpi_name` (11 chỉ số/khu/mốc); xem thêm `reports/k5_sensitivity.csv` và `reports/k5_checks.csv`. |
+| `kpi_k6_commercial_share.csv` | Tỷ lệ listing thương mại/trung hạn (`availability_365 > 240` hoặc `minimum_nights >= 30`) và biên CI 95% (`pp`). | 5 chỉ số/khu/mốc (`commercial_share`, `commercial_share_margin95`, `commercial_listings`, `availability_share`, `long_stay_share`). |
+| `kpi_k7_community_complaint.csv` | Tỷ lệ review hợp lệ có phàn nàn cộng đồng (`noise`, `neighbours`, `area_hygiene`, `safety`) có dẫn chứng nguyên văn (`%`). | Có `value_before_qa` và `n_before_qa`; ô có `n_used < 30` để trống `value`. |
 | `kpi_k8_data_reliability.csv` | Tỷ lệ gắn cờ / thiếu độ phủ / loại trừ (`%`) theo từng quy tắc kiểm định. | `n_used` là quy mô kiểm tra, `n_excluded` là số ca bị cờ/loại. |
 
 ---
@@ -93,7 +93,7 @@ Mỗi dòng biểu diễn một phép đo (`kpi_id`, `kpi_name`) tại mốc `sn
 | `data/processed/baseline_reviews.csv` | Kết quả phân tích không dùng LLM: `review_id`, `language`, `sentiment`, `aspects_positive`, `aspects_negative`, `status`, `lang_confidence`, `pos_score`, `neg_score`. [Mã baseline](../src/baseline.py) |
 | `data/interim/k7_llm_cache.jsonl` | Nhật ký cache từng lượt gọi LLM theo `id` và `attempt` (`ok`, `result`, `error`, `model`, `prompt_version`). [Mã LLM](../src/llm_label.py) |
 | `data/interim/k7_labels.csv` | Bảng nhãn LLM cuối cùng (635 ID duy nhất: 633 `label_valid=True`, 2 `False`): `id`, `sentiment`, `language`, `aspects_praised`, `aspects_criticized`, `evidence`, `label_valid`, `error`. |
-| `data/processed/k07_evidence_review.csv` | Danh sách 7 review bị cờ `llm_evidence_missing` (trích dẫn không khớp nguyên văn) để kiểm tra tay. |
+| `data/processed/k7_evidence_review.csv` | Danh sách 7 review bị cờ `llm_evidence_missing` (trích dẫn không khớp nguyên văn) để kiểm tra tay. |
 | `data/interim/k7_handlabel_sample.csv` | Tập 150 review gán nhãn tay (`hand_language`, `hand_sentiment`, `hand_community_complaint`). |
 | `reports/eval_summary.csv` | Độ chính xác (`accuracy`), `macro_f1`, `precision`, `recall`, `f1` của cả Baseline và LLM so với 150 nhãn tay. [Mã đánh giá](../src/evaluate.py) |
 | `reports/eval_baseline_vs_llm.csv` | Mức đồng thuận chéo giữa Baseline và LLM trên toàn bộ mẫu 633 review có nhãn hợp lệ. |

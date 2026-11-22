@@ -126,7 +126,8 @@ def run(cfg, save=True):
         parts.append(to_long(kpi_by_area(lst, area_map, cfg["availability_commercial"]), str(snap), kpi_id))
     out = pd.concat(parts, ignore_index=True)
     if save:
-        path = in_dir / f"kpi_{kpi_id.lower()}_{slug}.csv"
+        file_id = f"k{int(kpi_id[1:])}" if kpi_id[:1].lower() == "k" and kpi_id[1:].isdigit() else kpi_id.lower()
+        path = in_dir / f"kpi_{file_id}_{slug}.csv"
         out.to_csv(path, index=False, encoding="utf-8-sig")
         print("Da ghi:", path)
     return out

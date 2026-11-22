@@ -188,7 +188,7 @@ def fig_k4_supply_change(proc_dir, snaps, out_dir):
 
 
 def fig_k5_revenue_tax(proc_dir, snaps, out_dir, currency="EUR"):
-    k5 = load_csv(proc_dir / "kpi_k05_revenue_tax.csv")
+    k5 = load_csv(proc_dir / "kpi_k5_revenue_tax.csv")
     if k5 is None or k5.empty:
         return
     areas = get_areas(k5)
@@ -223,7 +223,7 @@ def fig_k5_revenue_tax(proc_dir, snaps, out_dir, currency="EUR"):
 
 
 def fig_k6_commercial_share(proc_dir, snaps, out_dir, avail_cap=240):
-    k6 = load_csv(proc_dir / "kpi_k06_commercial_share.csv")
+    k6 = load_csv(proc_dir / "kpi_k6_commercial_share.csv")
     if k6 is None or k6.empty:
         return
     areas = get_areas(k6)
@@ -254,7 +254,7 @@ def fig_k6_commercial_share(proc_dir, snaps, out_dir, avail_cap=240):
 
 
 def fig_k7_llm_community(proc_dir, interim_dir, snaps, out_dir):
-    k7 = load_csv(proc_dir / "kpi_k07_community_complaint.csv")
+    k7 = load_csv(proc_dir / "kpi_k7_community_complaint.csv")
     labels = load_csv(interim_dir / "k7_labels.csv")
     if k7 is None and labels is None:
         return

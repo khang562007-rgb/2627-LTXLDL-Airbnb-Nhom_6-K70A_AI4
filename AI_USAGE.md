@@ -23,7 +23,7 @@
 
 ## 3. AI sai ở đâu (ví dụ thật)
 
-- **LLM trích dẫn không nguyên văn (ảo giác / sửa dấu câu làm lệch ngữ cảnh)**: Với review `733857091106204293`, mô hình trích `"Quite loud at night with music playing in bar/restaurant below."`, cắt mất vế sau của khách (`", it didn't bother us at all"`). Với review `951338877737952394`, mô hình bịa hẳn trích dẫn `"there was a problem with a window tha didn't lock"` hoàn toàn không xuất hiện trong văn bản gốc. Cả 7 trường hợp trích sai như vậy đều bị rule `llm_evidence_missing` phát hiện, ghi vào [k07_evidence_review.csv](data/processed/k07_evidence_review.csv) và loại khỏi mẫu số K07.
+- **LLM trích dẫn không nguyên văn (ảo giác / sửa dấu câu làm lệch ngữ cảnh)**: Với review `733857091106204293`, mô hình trích `"Quite loud at night with music playing in bar/restaurant below."`, cắt mất vế sau của khách (`", it didn't bother us at all"`). Với review `951338877737952394`, mô hình bịa hẳn trích dẫn `"there was a problem with a window tha didn't lock"` hoàn toàn không xuất hiện trong văn bản gốc. Cả 7 trường hợp trích sai như vậy đều bị rule `llm_evidence_missing` phát hiện, ghi vào [k7_evidence_review.csv](data/processed/k7_evidence_review.csv) và loại khỏi mẫu số K07.
 - **LLM bỏ sót ID và trả sai schema khía cạnh**: Trong 676 lượt xử lý, cache ghi nhận **36 lỗi `missing_in_response`** và **7 lỗi `aspect`**. Sau 1 lượt thử lại tự động, ID `71792369` phục hồi hợp lệ, còn 2 ID (`906423213530038214` và `1420291541566685123`) vẫn lỗi `aspect` ở cả 2 lần và bị gắn `label_valid=False`. [Cache JSONL](data/interim/k7_llm_cache.jsonl)
 - **LLM sai trên tập 150 nhãn tay (6 ca lệch)**:
   - *Bỏ sót phàn nàn cộng đồng (3 ca False Negative)*: review `1422437158455126697` (*"looks a bit rough in that area. definitely get an uber on the night"* — hàm ý thiếu an toàn), `1462970035264932138` (*"road outside was quite noisy"*), và `1450737804013408290` (công trình ngoài đường / mất riêng tư với nhà đối diện cách < 3 m) đều bị LLM bỏ sót nhãn phàn nàn cộng đồng.
@@ -37,7 +37,7 @@
 2. **Tính tay đối chiếu công thức KPI**:
    - **K03 (2026-09-19, `ALL`)**: `853 / 974 × 100 = 87,58%`, khớp [kpi_k3_entire_home_share.csv](data/processed/kpi_k3_entire_home_share.csv).
    - **K04 (`2026-06-23 -> 2026-09-19`, `ALL`)**: `0` mới, `26` mất trên `1.000` listing → `-2,60%`, khớp [kpi_k4_supply_change.csv](data/processed/kpi_k4_supply_change.csv).
-   - **K07 (2025-09-21, `ALL`)**: `635` mẫu loại `2` nhãn sai schema và `7` trích dẫn không nguyên văn còn `626`; `33 / 626 × 100 = 5,27%` (giảm `-1,05` điểm % so với `6,32%` trước khi lọc bằng chứng), khớp [kpi_k07_community_complaint.csv](data/processed/kpi_k07_community_complaint.csv).
+   - **K07 (2025-09-21, `ALL`)**: `635` mẫu loại `2` nhãn sai schema và `7` trích dẫn không nguyên văn còn `626`; `33 / 626 × 100 = 5,27%` (giảm `-1,05` điểm % so với `6,32%` trước khi lọc bằng chứng), khớp [kpi_k7_community_complaint.csv](data/processed/kpi_k7_community_complaint.csv).
 3. **Kiểm thử Baseline trên cả 2 định dạng đầu vào**: Xác nhận đọc đúng cả tệp mẫu TSV (`review_id`, `comments`, 43 dòng) lẫn đầu vào pipeline (`id`, `comment_clean`, 19.932 dòng) mà không rơi về cột gốc khi `comment_clean` rỗng.
 4. **Đánh giá trên 150 nhãn tay & đối chiếu chéo 633 review**: Chạy `python src/evaluate.py --config configs/porto.yaml --out-dir reports` cho kết quả tại [reports/eval_summary.csv](reports/eval_summary.csv) và [reports/eval_baseline_vs_llm.csv](reports/eval_baseline_vs_llm.csv):
    - **So với 150 nhãn tay** (mẫu phân tầng giữ đủ ca tiêu cực và phàn nàn cộng đồng):

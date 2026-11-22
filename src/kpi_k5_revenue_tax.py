@@ -13,8 +13,8 @@ Calendar chỉ dùng để đối chiếu (bảng checks), không ép số đêm
 
 Đầu ra:
     data/processed/kpi_<id>_<slug>.csv    (schema long format của nhóm)
-    reports/k05_sensitivity.csv           (Average Stay = 2, 3, 5)
-    reports/k05_checks.csv                (kiểm tra ngoại lệ và đối chiếu calendar)
+    reports/k5_sensitivity.csv            (Average Stay = 2, 3, 5)
+    reports/k5_checks.csv                 (kiểm tra ngoại lệ và đối chiếu calendar)
 """
 import argparse
 import sys
@@ -228,12 +228,13 @@ def run(cfg, save=True):
         chks.append(checks(df, used, cap, snap, cfg))
     kpi, sens, chk = (pd.concat(x, ignore_index=True) for x in (kpis, senss, chks))
     if save:
-        out = Path(cfg["paths"]["processed"]) / f"kpi_{p['id'].lower()}_{p['slug']}.csv"
+        file_id = f"k{int(p['id'][1:])}" if p["id"][:1].lower() == "k" and p["id"][1:].isdigit() else p["id"].lower()
+        out = Path(cfg["paths"]["processed"]) / f"kpi_{file_id}_{p['slug']}.csv"
         Path("reports").mkdir(exist_ok=True)
         kpi.to_csv(out, index=False)
-        sens.to_csv("reports/k05_sensitivity.csv", index=False)
-        chk.to_csv("reports/k05_checks.csv", index=False)
-        print("Da ghi:", out, "| reports/k05_sensitivity.csv | reports/k05_checks.csv")
+        sens.to_csv(f"reports/{file_id}_sensitivity.csv", index=False)
+        chk.to_csv(f"reports/{file_id}_checks.csv", index=False)
+        print("Da ghi:", out, f"| reports/{file_id}_sensitivity.csv | reports/{file_id}_checks.csv")
     return kpi, sens, chk
 
 

@@ -1,16 +1,16 @@
 ﻿rule,kind,table,snapshot,condition,reason,action,rows_total,rows_flagged,note
 listing_no_neighbourhood,flag,reviews,2025-09-21,"listing_id không nối được listings gốc cùng mốc, hoặc neighbourhood_cleansed rỗng",Không xếp được vào khu,"Gắn cờ, loại khỏi K7",635,0,
 llm_label_invalid,flag,reviews,2025-09-21,"LLM trả kết quả không đúng schema (không parse được JSON, nhãn ngoài danh sách cho phép)",Không có nhãn dùng được,"Gắn cờ, loại khỏi K7, chạy lại một lần",635,2,
-llm_evidence_missing,flag,reviews,2025-09-21,nhãn có phàn nàn cộng đồng nhưng câu trích làm bằng chứng không nằm trong comment_clean,Nghi LLM bịa nhãn,"Gắn cờ, loại khỏi K7 và đưa vào danh sách kiểm tra tay",635,7,danh sách kiểm tra tay: k07_evidence_review.csv
+llm_evidence_missing,flag,reviews,2025-09-21,nhãn có phàn nàn cộng đồng nhưng câu trích làm bằng chứng không nằm trong comment_clean,Nghi LLM bịa nhãn,"Gắn cờ, loại khỏi K7 và đưa vào danh sách kiểm tra tay",635,7,danh sách kiểm tra tay: k7_evidence_review.csv
 listing_no_neighbourhood,flag,reviews,2026-03-26,"listing_id không nối được listings gốc cùng mốc, hoặc neighbourhood_cleansed rỗng",Không xếp được vào khu,"Gắn cờ, loại khỏi K7",635,0,
 llm_label_invalid,flag,reviews,2026-03-26,"LLM trả kết quả không đúng schema (không parse được JSON, nhãn ngoài danh sách cho phép)",Không có nhãn dùng được,"Gắn cờ, loại khỏi K7, chạy lại một lần",635,2,
-llm_evidence_missing,flag,reviews,2026-03-26,nhãn có phàn nàn cộng đồng nhưng câu trích làm bằng chứng không nằm trong comment_clean,Nghi LLM bịa nhãn,"Gắn cờ, loại khỏi K7 và đưa vào danh sách kiểm tra tay",635,7,danh sách kiểm tra tay: k07_evidence_review.csv
+llm_evidence_missing,flag,reviews,2026-03-26,nhãn có phàn nàn cộng đồng nhưng câu trích làm bằng chứng không nằm trong comment_clean,Nghi LLM bịa nhãn,"Gắn cờ, loại khỏi K7 và đưa vào danh sách kiểm tra tay",635,7,danh sách kiểm tra tay: k7_evidence_review.csv
 listing_no_neighbourhood,flag,reviews,2026-06-23,"listing_id không nối được listings gốc cùng mốc, hoặc neighbourhood_cleansed rỗng",Không xếp được vào khu,"Gắn cờ, loại khỏi K7",635,0,
 llm_label_invalid,flag,reviews,2026-06-23,"LLM trả kết quả không đúng schema (không parse được JSON, nhãn ngoài danh sách cho phép)",Không có nhãn dùng được,"Gắn cờ, loại khỏi K7, chạy lại một lần",635,2,
-llm_evidence_missing,flag,reviews,2026-06-23,nhãn có phàn nàn cộng đồng nhưng câu trích làm bằng chứng không nằm trong comment_clean,Nghi LLM bịa nhãn,"Gắn cờ, loại khỏi K7 và đưa vào danh sách kiểm tra tay",635,7,danh sách kiểm tra tay: k07_evidence_review.csv
+llm_evidence_missing,flag,reviews,2026-06-23,nhãn có phàn nàn cộng đồng nhưng câu trích làm bằng chứng không nằm trong comment_clean,Nghi LLM bịa nhãn,"Gắn cờ, loại khỏi K7 và đưa vào danh sách kiểm tra tay",635,7,danh sách kiểm tra tay: k7_evidence_review.csv
 listing_no_neighbourhood,flag,reviews,2026-09-19,"listing_id không nối được listings gốc cùng mốc, hoặc neighbourhood_cleansed rỗng",Không xếp được vào khu,"Gắn cờ, loại khỏi K7",625,0,
 llm_label_invalid,flag,reviews,2026-09-19,"LLM trả kết quả không đúng schema (không parse được JSON, nhãn ngoài danh sách cho phép)",Không có nhãn dùng được,"Gắn cờ, loại khỏi K7, chạy lại một lần",625,2,
-llm_evidence_missing,flag,reviews,2026-09-19,nhãn có phàn nàn cộng đồng nhưng câu trích làm bằng chứng không nằm trong comment_clean,Nghi LLM bịa nhãn,"Gắn cờ, loại khỏi K7 và đưa vào danh sách kiểm tra tay",625,7,danh sách kiểm tra tay: k07_evidence_review.csv
+llm_evidence_missing,flag,reviews,2026-09-19,nhãn có phàn nàn cộng đồng nhưng câu trích làm bằng chứng không nằm trong comment_clean,Nghi LLM bịa nhãn,"Gắn cờ, loại khỏi K7 và đưa vào danh sách kiểm tra tay",625,7,danh sách kiểm tra tay: k7_evidence_review.csv
 kpi_cell_no_sample,flag,kpi_k07,2025-09-21,n_used = 0,Không có review trong ô,"Để value trống, không điền 0",8,0,
 kpi_cell_small_sample,flag,kpi_k07,2025-09-21,n_used của ô khu < ngưỡng tối thiểu (đề xuất 30),Tỷ lệ không ổn định,"Gắn cờ, ghi 'không đủ mẫu', để trống value",8,0,ngưỡng 30
 kpi_cell_no_sample,flag,kpi_k07,2026-03-26,n_used = 0,Không có review trong ô,"Để value trống, không điền 0",8,0,
