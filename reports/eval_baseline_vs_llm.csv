@@ -1,0 +1,4 @@
+﻿comparison,task,n,agreement,macro_f1_rel,f1_rel
+baseline_vs_llm,language,633,0.9968,,
+baseline_vs_llm,sentiment,632,0.837,0.6075,
+baseline_vs_llm,community_complaint,633,0.9542,,0.6133

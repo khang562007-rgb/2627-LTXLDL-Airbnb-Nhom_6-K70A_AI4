@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+from dataclasses import fields
 import gzip
 import html
 import importlib.util
@@ -41,7 +42,7 @@ DEFAULTS = {
     "input_path": "data/samples/reviews_sample.csv",
     "output_path": "data/processed/baseline_reviews.csv",
     "languages": ["en", "es", "fr", "de", "pt"],
-    "lexicon_path": "data/samples/baseline_lexicon.py",
+    "lexicon_path": "src/baseline_lexicon.py",
     "aspects": None,                   # None = dùng DEFAULT_ASPECTS trong tệp từ vựng,
     "lang_backend": "langdetect",      # langdetect | auto | stopwords
     "min_lang_confidence": 0.5,
@@ -405,8 +406,7 @@ def detect_delimiter(fin):
     fin.seek(0)
     for delimiter in (",", "\t", ";"):
         fields = next(csv.reader([header], delimiter=delimiter), [])
-        if "comments" in fields and ("review_id" in fields or "id" in fields):
-            return delimiter
+    if ("comments" in fields or "comment_clean" in fields) and ("review_id" in fields or "id" in fields):            return delimiter
     return ","
 
 
@@ -422,8 +422,9 @@ def run(cfg, input_path=None, output_path=None, limit=None, backend=None):
     with _open(input_path, "r", encoding="utf-8-sig", newline="") as fin:
         delimiter = detect_delimiter(fin)
         rd = csv.DictReader(fin, delimiter=delimiter)
-        if "comments" not in (rd.fieldnames or []):
-            sys.exit(f"Thiếu cột 'comments' trong {input_path} (có: {rd.fieldnames})")
+        text_col = "comments" if "comments" in (rd.fieldnames or []) else ("comment_clean" if "comment_clean" in (rd.fieldnames or []) else None)
+        if text_col is None:
+            sys.exit(f"Thiếu cột 'comments' hoặc 'comment_clean' trong {input_path} (có: {rd.fieldnames})")
         id_col = "review_id" if "review_id" in rd.fieldnames else ("id" if "id" in rd.fieldnames else None)
         if id_col is None:
             sys.exit("Thiếu cột 'review_id'")
@@ -436,7 +437,7 @@ def run(cfg, input_path=None, output_path=None, limit=None, backend=None):
                 for i, r in enumerate(rd):
                     if limit is not None and i >= limit:
                         break
-                    row = process_review(r[id_col], r["comments"], ctx)
+                    row = process_review(r[id_col], r[text_col], ctx)
                     wr.writerow(row)
                     stats["status:" + row["status"]] += 1
                     if row["sentiment"]:
