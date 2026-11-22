@@ -106,6 +106,7 @@ def flag_text(rv, q):
     rv["comment_clean"] = (c.map(html.unescape)
                             .str.replace(BR, " ", regex=True, case=False)
                             .str.replace(TAG, "", regex=True)
+                            .str.replace("\xa0", " ", regex=False)
                             .str.replace(r"\s+", " ", regex=True)
                             .str.strip())
     rv["comment_empty_or_short"] = rv["comment_clean"].str.len() < q["min_comment_len"]

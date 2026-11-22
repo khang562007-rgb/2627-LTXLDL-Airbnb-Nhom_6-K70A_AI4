@@ -12,8 +12,8 @@ Phiên bản Python đã kiểm thử của dự án được khai báo trong t�
 
 | Thư viện | Phiên bản | Tác dụng trong project |
 |---|---:|---|
-| [NumPy](https://numpy.org/) (`numpy`) | 2.3.3 | Hỗ trợ tính toán số học và thao tác mảng trong các bước QA/KPI. |
-| [pandas](https://pandas.pydata.org/) (`pandas`) | 2.3.3 | Đọc, lọc, làm sạch, biến đổi và tổng hợp dữ liệu bảng (`listings`, `calendar`, `reviews`). |
+| [NumPy](https://numpy.org/) (`numpy`) | 2.5.2 | Hỗ trợ tính toán số học và thao tác mảng trong các bước QA/KPI. |
+| [pandas](https://pandas.pydata.org/) (`pandas`) | 3.0.5 | Đọc, lọc, làm sạch, biến đổi và tổng hợp dữ liệu bảng (`listings`, `calendar`, `reviews`). |
 | [PyArrow](https://arrow.apache.org/docs/python/) (`pyarrow`) | 26.0.0 | Tăng tốc đọc/ghi dữ liệu cho `pandas` khi xử lý `calendar` và file nén. |
 | [PyYAML](https://pyyaml.org/) (`yaml`) | 6.0.3 | Đọc cấu hình pipeline từ tệp YAML (`configs/porto.yaml`). |
 | [langdetect](https://pypi.org/project/langdetect/) (`langdetect`) | 1.0.9 | Nhận diện ngôn ngữ cho phương pháp Baseline NLP (`src/baseline.py`). |
@@ -60,14 +60,17 @@ python run_pipeline.py --config configs/porto.yaml
 Các tùy chọn hỗ trợ:
 - `--skip-llm`: Chỉ đọc nhãn LLM đã lưu trong cache (không gọi thêm API nếu xuất hiện review mới chưa có trong cache), vẫn tính đầy đủ K07, K08 lượt 2 và đánh giá.
 - `--steps qa kpi reviews viz`: Chỉ chạy các giai đoạn mong muốn.
-- `--with-filter`: Chạy thêm bước lọc dữ liệu thô từ `data/raw/` (`src/filter_all.py` → `src/check_counts.py`).
+- `--with-filter`: Chạy thêm bước lọc dữ liệu thô từ `data/raw/` (`src/filter_all.py` → `src/check_counts.py`). Nếu chưa có dữ liệu thô trong `data/raw/`, tải trước đủ 4 tệp/mốc (gồm cả `visualisations/neighbourhoods.geojson`) bằng lệnh:
+  ```bash
+  python src/download.py --config configs/porto.yaml
+  ```
 - `--dry-run`: In danh sách các lệnh sẽ thực thi mà không chạy thật.
 
 ### Quy trình gán nhãn tay và đánh giá Baseline / LLM
 
 1. Sinh tệp mẫu gán nhãn tay (nếu cần tạo mới):
    ```bash
-   python src/kpi_k7_evidence_review.py configs/porto.yaml data/processed/reviews_valid.csv data/processed --handlabel
+   python src/kpi_k7_community_complaint.py configs/porto.yaml data/processed/reviews_valid.csv data/processed --handlabel
    ```
 2. Điền 3 cột `hand_language`, `hand_sentiment` (`positive`/`mixed`/`negative`), `hand_community_complaint` (`0`/`1`) trong [`data/interim/k7_handlabel_sample.csv`](data/interim/k7_handlabel_sample.csv) (nhóm đã hoàn thiện 150 dòng).
 3. Chạy đánh giá đối chiếu Baseline và LLM so với nhãn tay (cũng tự động chạy trong `run_pipeline.py`):

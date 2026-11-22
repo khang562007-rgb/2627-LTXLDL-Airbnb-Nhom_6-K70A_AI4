@@ -105,7 +105,7 @@ k05_revenue_tax:
 
 baseline:
   # Ưu tiên langdetect; dùng bộ từ dừng dự phòng nếu môi trường chưa cài gói này.
-  lang_backend: auto
+  lang_backend: langdetect
   min_lang_confidence: 0.5
   short_max_tokens: 3
   short_min_lang_confidence: 0.1

@@ -4,7 +4,7 @@ Ví dụ:
     python run_pipeline.py                          # chạy qa -> kpi -> reviews -> viz
     python run_pipeline.py --with-filter            # chạy thêm filter_all + check_counts
     python run_pipeline.py --steps kpi viz          # chỉ chạy lại KPI và vẽ biểu đồ
-    python run_pipeline.py --skip-llm               # bỏ qua bước gọi LLM K07
+    python run_pipeline.py --skip-llm               # chỉ dùng nhãn LLM trong cache (không gọi API)
     python run_pipeline.py --dry-run                # chỉ in lệnh, không thực thi
 """
 import argparse
@@ -42,7 +42,7 @@ def main():
         help="Các giai đoạn cần chạy theo thứ tự",
     )
     ap.add_argument("--with-filter", action="store_true", help="Chạy thêm bước lọc dữ liệu thô (prep) trước qa")
-    ap.add_argument("--skip-llm", action="store_true", help="Bỏ qua bước gắn nhãn LLM / K07")
+    ap.add_argument("--skip-llm", action="store_true", help="Chỉ dùng nhãn LLM đã lưu trong cache (không gọi API mới), vẫn tính K07")
     ap.add_argument("--dry-run", action="store_true", help="Chỉ in ra các lệnh sẽ chạy mà không thực thi")
     args = ap.parse_args()
 

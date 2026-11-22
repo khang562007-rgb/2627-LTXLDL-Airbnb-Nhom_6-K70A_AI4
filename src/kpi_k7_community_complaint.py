@@ -1,9 +1,8 @@
 """K7 - tỷ lệ review có phàn nàn cộng đồng, theo khu.
 Mẫu LLM: mỗi listing 1 review ngẫu nhiên theo seed (từ reviews_valid.csv).
-python src/k07.py configs/porto.yaml data/processed/reviews_valid.csv data/processed
-python src/k07.py configs/porto.yaml data/processed/reviews_valid.csv data/processed --handlabel   (chỉ làm mẫu gán tay)
-python src/k07.py configs/porto.yaml data/processed/reviews_valid.csv data/processed --skip-llm    (chỉ dùng cache, không gọi LLM)
-python src/k07.py configs/porto.yaml data/processed/reviews_valid.csv data/processed --skip-llm    (không gọi LLM, chỉ dùng cache)
+python src/kpi_k7_community_complaint.py configs/porto.yaml data/processed/reviews_valid.csv data/processed
+python src/kpi_k7_community_complaint.py configs/porto.yaml data/processed/reviews_valid.csv data/processed --handlabel   (chỉ làm mẫu gán tay)
+python src/kpi_k7_community_complaint.py configs/porto.yaml data/processed/reviews_valid.csv data/processed --skip-llm    (chỉ dùng cache, không gọi LLM)
 Nhãn LLM lưu cache; chạy lại thì chỉ gọi LLM cho review chưa có nhãn.
 """
 import sys
