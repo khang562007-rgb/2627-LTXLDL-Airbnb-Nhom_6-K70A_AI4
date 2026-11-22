@@ -10,7 +10,6 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from src.audit_flags import audit_table, check_collisions, sample_flagged
 import pandas as pd
 import yaml
 RULES = {

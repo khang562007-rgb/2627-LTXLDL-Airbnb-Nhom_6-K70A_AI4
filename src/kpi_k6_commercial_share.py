@@ -23,12 +23,12 @@ COLUMNS = ["kpi_id", "kpi_name", "snapshot", "neighbourhood_cleansed", "period",
 
 
 def load_area_map(cfg):
-    """listing_id -> analysis_area, đọc từ sample.listing_ids_path (id_listing.csv)."""
+    """listing_id -> analysis_area, đọc từ sample.listing_ids_path (porto-listings.csv)."""
     p = Path(cfg["sample"]["listing_ids_path"])
     if not p.exists():
         raise FileNotFoundError(f"Khong tim thay {p}")
     try:
-        df = pd.read_csv(p, dtype=str)
+        df = pd.read_csv(p, dtype=str, encoding="utf-8-sig")
     except pd.errors.EmptyDataError:
         raise ValueError(f"{p} rong (khong co dong nao), kiem tra lai file")
     missing = {"listing_id", "analysis_area"} - set(df.columns)

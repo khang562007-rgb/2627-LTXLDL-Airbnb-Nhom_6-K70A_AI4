@@ -1,5 +1,4 @@
 """Gắn nhãn LLM cho K7: cảm xúc, khía cạnh khen/chê, ngôn ngữ. Có cache, chạy tiếp được sau khi dừng."""
-import hashlib
 import json
 import os
 import time
@@ -65,29 +64,6 @@ def gemini_call(model, api_key, temperature):
         return r.text
 
     return call
-
-
-# def mock_call(prompt):
-#     """CHỈ ĐỂ THỬ LUỒNG, không phải kết quả thật."""
-#     batch = json.loads(prompt.split("REVIEWS:\n", 1)[1])
-#     keys = {"noise": ["noise", "noisy", "loud"], "neighbours": ["neighbour", "neighbor"],
-#             "area_hygiene": ["trash", "garbage", "smell"], "safety": ["unsafe", "theft", "dangerous"]}
-#     out = []
-#     for r in batch:
-#         h = int(hashlib.md5(r["id"].encode()).hexdigest(), 16) % 100
-#         if h < 2:
-#             out.append({"id": r["id"], "sentiment": "???"})
-#             continue
-#         t, asp = r["text"].lower(), []
-#         for a, ks in keys.items():
-#             for k in ks:
-#                 i = t.find(k)
-#                 if i >= 0:
-#                     ev = r["text"][max(0, i - 10): i + len(k) + 10] if h > 5 else "fabricated quote"
-#                     asp.append({"aspect": a, "polarity": "criticism", "evidence": ev})
-#                     break
-#         out.append({"id": r["id"], "language": "en", "sentiment": "negative" if asp else "positive", "aspects": asp})
-#     return json.dumps(out)
 
 
 def openai_compat_call(lc, api_key):

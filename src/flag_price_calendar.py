@@ -10,7 +10,6 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from src.audit_flags import audit_table, check_collisions, sample_flagged
 import pandas as pd
 import yaml
 RULES = {
@@ -107,7 +106,7 @@ def main():
     report.clear()
     last_price = None
     ids_path = ROOT / cfg["sample"]["listing_ids_path"]
-    ids_frame = pd.read_csv(ids_path, dtype=str)
+    ids_frame = pd.read_csv(ids_path, dtype=str, encoding="utf-8-sig")
     ids_col = "listing_id" if "listing_id" in ids_frame else "id"
     ids = ids_frame[ids_col].dropna().drop_duplicates().tolist()
     for snap in cfg["snapshots"]:
