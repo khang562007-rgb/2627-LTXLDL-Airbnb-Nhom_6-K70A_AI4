@@ -37,7 +37,7 @@ def main():
     ap.add_argument(
         "--steps",
         nargs="+",
-        default=["qa", "kpi", "reviews", "viz"],
+        default=["prep","qa", "kpi", "reviews", "viz"],
         choices=["prep", "qa", "kpi", "reviews", "viz"],
         help="Các giai đoạn cần chạy theo thứ tự",
     )
@@ -59,6 +59,7 @@ def main():
     t_start = time.perf_counter()
 
     if "prep" in steps:
+        run_step("download",[py,"src/download.py", "--config", args.config], args.dry_run)
         run_step("Filter raw data to interim", [py, "src/filter_all.py", "--config", args.config], args.dry_run)
         run_step("Check filtered row counts", [py, "src/check_counts.py", "--config", args.config], args.dry_run)
 
